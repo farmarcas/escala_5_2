@@ -119,7 +119,14 @@ export function RosterScreen({ store }: { store: ScaleStore }) {
           {state.roster.groups
             .filter((g) => groupKey === 'todas' || g.key === groupKey)
             .map((g) => (
-              <RosterGrid key={g.key} group={g} week={week} dates={state.roster.dates} day={day} />
+              <RosterGrid
+                key={g.key}
+                group={g}
+                week={week}
+                dates={state.roster.dates}
+                holidays={state.roster.holidays}
+                day={day}
+              />
             ))}
           <p className="text-muted-foreground text-xs">
             Cada pessoa tem pelo menos 11 horas de descanso entre uma jornada e a seguinte, e o

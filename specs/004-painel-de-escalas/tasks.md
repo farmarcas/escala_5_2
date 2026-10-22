@@ -63,9 +63,9 @@ description: "Tarefas: Painel de Escalas 5x2 (Farmarcas)"
 
 ## Fatia 4: Plantão e feriados
 
-- [ ] T029 [P] [S4] Testes de plantão (semanal, mensal, semana do ciclo, farmacêutico no plantão, folga no dia seguinte, intermitente, intervalo indenizado) e de feriados (rotativa e fixa, compensatória ou dobro, folga que cai no feriado, resumo)
-- [ ] T030 [S4] `engine/plantao.ts` e `engine/holidays.ts`, integrados a `staffing.ts`, `roster.ts` e `costs.ts`; feriados nacionais 2026 a 2028 em dados
-- [ ] T031 [S4] Passos 3 e 7 no cadastro; resumo "Feriados no período" e marcas na grade; revisão visual e roteiro 4
+- [x] T029 [P] [S4] Testes de plantão (semanal, mensal, semana do ciclo, farmacêutico no plantão, folga no dia seguinte, intermitente, intervalo indenizado) e de feriados (rotativa e fixa, compensatória ou dobro, folga que cai no feriado, resumo)
+- [x] T030 [S4] `engine/plantao.ts` e `engine/holidays.ts`, integrados a `staffing.ts`, `roster.ts` e `costs.ts`; feriados nacionais 2026 a 2028 em dados
+- [x] T031 [S4] Passos 3 e 7 no cadastro; resumo "Feriados no período" e marcas na grade; revisão visual e roteiro 4
 
 ## Fatia 5: Vendas, CMV e meta da folha
 

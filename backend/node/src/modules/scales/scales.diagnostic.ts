@@ -11,6 +11,13 @@ import {
 } from './engine/costs.js';
 import { hourlyRate, nightAdditionMonthly, nightMinutes } from './engine/night.js';
 import { PAY, SCENARIOS, SCHEDULE, type ScenarioId } from './engine/rules.js';
+import { plantaoNightsPerWeek, plantaoShiftTimes } from './engine/plantao.js';
+import {
+  eventsFor,
+  holidayDays,
+  plantaoExtraPostsPerWeek,
+  plantaoRoleOf,
+} from './scales.events.js';
 import { rosterWithMinimumPeople, type Roster } from './engine/roster.js';
 import { requiredPeople } from './engine/staffing.js';
 import type { ScaleRoleInput, ScaleStoreInput } from './scales.schemas.js';
@@ -64,6 +71,21 @@ export type PayrollSummary = {
   components: Components;
 };
 
+export type HolidayRow = {
+  date: string;
+  name: string;
+  scope: 'nacional' | 'estadual_municipal';
+  open: boolean;
+  working: number;
+  off: number;
+};
+
+export type HolidaySummary = {
+  rows: HolidayRow[];
+  // Folgas compensatórias geradas no período (zero quando o feriado é pago em dobro).
+  compensatoryDays: number;
+};
+
 export type Diagnostic = {
   rows: DiagnosticRow[];
   totals: { today: number; need: Record<ScenarioId, number>; hire: Record<NewScenario, number> };
@@ -81,6 +103,7 @@ export type Diagnostic = {
       }
     >;
   };
+  holidays: Record<NewScenario, HolidaySummary>;
   notes: string[];
 };
 
@@ -107,16 +130,35 @@ type GroupScenario = {
   // Médias por pessoa paga (o dono farmacêutico fica de fora).
   nightMinutesPerWeek: number;
   shiftsPerMonth: number;
+  // Horas além da jornada diária nos turnos de plantão e quantidade desses turnos, por mês.
+  plantaoOvertimeHoursPerMonth: number;
+  plantaoShiftsPerMonth: number;
+  // Horas trabalhadas em feriado, por mês.
+  holidayHoursPerMonth: number;
 };
 
 // Pessoas necessárias: parte da fórmula de dimensionamento e sobe até a escala de 4 semanas fechar de verdade.
 function planGroup(store: ScaleStoreInput, lead: ScaleRoleInput, id: ScenarioId): GroupScenario {
   const week = buildWeekHours(store.hours as StoreHoursInput);
   const options = { lunchMinutes: store.rules.lunchMinutes, sundayRule: store.rules.sundayRule };
-  const formula = requiredPeople({ ...lead, extraPostsPerWeek: 0 }, week, SCENARIOS[id], options);
+  const formula = requiredPeople(
+    { ...lead, extraPostsPerWeek: plantaoExtraPostsPerWeek(store, lead.role) },
+    week,
+    SCENARIOS[id],
+    options,
+  );
   const start = formula.ok ? formula.people : 0;
   const empty: Roster = { ok: true, people: [], unfilled: [] };
-  if (start === 0) return { need: 0, roster: empty, nightMinutesPerWeek: 0, shiftsPerMonth: 0 };
+  const none = {
+    need: 0,
+    roster: empty,
+    nightMinutesPerWeek: 0,
+    shiftsPerMonth: 0,
+    plantaoOvertimeHoursPerMonth: 0,
+    plantaoShiftsPerMonth: 0,
+    holidayHoursPerMonth: 0,
+  };
+  if (start === 0) return none;
   const result = rosterWithMinimumPeople(
     {
       role: lead,
@@ -126,25 +168,38 @@ function planGroup(store: ScaleStoreInput, lead: ScaleRoleInput, id: ScenarioId)
       snackMinutes: store.rules.snackMinutes,
       sundayRule: store.rules.sundayRule,
       hasOwner: lead.ownerIsPharmacist,
+      events: eventsFor(store, lead.role),
     },
     start,
   );
   const paid = result.people.filter((p) => !p.isOwner);
+  const dailyMinutes = SCENARIOS[id].dailyHours * 60;
   let night = 0;
   let shifts = 0;
+  let plantaoShifts = 0;
+  let overtime = 0;
+  let holidayMinutes = 0;
   for (const p of paid) {
     for (const cell of p.days) {
       if (!cell) continue;
       shifts += 1;
       night += nightMinutes(cell, cell.lunch);
+      if (cell.kind === 'plantao') {
+        plantaoShifts += 1;
+        overtime += Math.max(0, cell.workMinutes - dailyMinutes) / 60;
+      } else if (cell.holiday) holidayMinutes += cell.workMinutes;
     }
   }
   const n = Math.max(paid.length, 1);
+  const perMonth = PAY.weeksPerMonth / SCHEDULE.weeks / n;
   return {
     need: result.count,
     roster: result,
     nightMinutesPerWeek: night / n / SCHEDULE.weeks,
-    shiftsPerMonth: (shifts / n / SCHEDULE.weeks) * PAY.weeksPerMonth,
+    shiftsPerMonth: shifts * perMonth,
+    plantaoOvertimeHoursPerMonth: overtime * perMonth,
+    plantaoShiftsPerMonth: plantaoShifts * perMonth,
+    holidayHoursPerMonth: (holidayMinutes / 60) * perMonth,
   };
 }
 
@@ -158,11 +213,48 @@ function additionsFor(
   const rate = hourlyRate(role.monthlySalary, SCENARIOS[scenario].weeklyHours);
   const additions: Additions = {
     night: nightAdditionMonthly(rate, plan.nightMinutesPerWeek),
+    overtime: rate * (1 + PAY.overtimePremium) * plan.plantaoOvertimeHoursPerMonth,
+    indemnifiedBreak: 0,
   };
   if (role.scaleType === 'doze_x_trinta_e_seis' && store.rules.indemnifyBreak) {
     additions.indemnifiedBreak = rate * PAY.indemnifiedBreakPremium * plan.shiftsPerMonth;
   }
+  if (store.plantao.indemnifyBreak) {
+    additions.indemnifiedBreak =
+      (additions.indemnifiedBreak ?? 0) +
+      rate * PAY.indemnifiedBreakPremium * plan.plantaoShiftsPerMonth;
+  }
+  if (store.holidays.compensation === 'dobro') {
+    additions.holidayDouble = rate * plan.holidayHoursPerMonth;
+  }
   return additions;
+}
+
+// Plantonista intermitente: paga só as horas convocadas (CLT art. 452-A), com adicional noturno.
+function intermittentLines(store: ScaleStoreInput, scenario: ScenarioId): PayrollLine[] {
+  const { plantao } = store;
+  if (plantao.type === 'none' || plantao.cover !== 'intermittent') return [];
+  const times = plantaoShiftTimes(plantao);
+  const nightsPerWeek = plantaoNightsPerWeek(plantao);
+  const lines: PayrollLine[] = [];
+  for (const role of store.roles) {
+    const key = plantaoRoleOf(role.role);
+    if (!key || !role.enabled || plantao.people[key] <= 0) continue;
+    const rate = hourlyRate(role.monthlySalary, SCENARIOS[scenario].weeklyHours);
+    const persons = plantao.people[key];
+    const hoursPerMonth = (times.workMinutes / 60) * nightsPerWeek * PAY.weeksPerMonth;
+    const nightMin = nightMinutes(
+      { start: times.start, end: times.end },
+      plantao.indemnifyBreak ? null : { start: times.start + 240, end: times.start + 300 },
+    );
+    lines.push({
+      salary: rate * hoursPerMonth,
+      people: persons,
+      daysPerWeek: nightsPerWeek,
+      additions: { night: nightAdditionMonthly(rate, nightMin * nightsPerWeek) },
+    });
+  }
+  return lines;
 }
 
 const summarize = (p: ReturnType<typeof payroll>): PayrollSummary => ({
@@ -172,6 +264,30 @@ const summarize = (p: ReturnType<typeof payroll>): PayrollSummary => ({
   components: p.components,
 });
 
+// Quantos trabalham e quantos folgam em cada feriado do período, somando todas as funções.
+function holidaySummary(store: ScaleStoreInput, plans: GroupScenario[]): HolidaySummary {
+  const days = holidayDays(store);
+  const rows: HolidayRow[] = [];
+  let compensatory = 0;
+  days.forEach((holiday, slot) => {
+    if (!holiday) return;
+    let working = 0;
+    let off = 0;
+    for (const plan of plans) {
+      for (const p of plan.roster.people) {
+        if (p.isOwner) continue;
+        const cell = p.days[slot];
+        if (cell && cell.kind !== 'plantao') working += 1;
+        else off += 1;
+      }
+    }
+    const open = store.holidays.openOnHolidays;
+    if (open && store.holidays.compensation === 'folga') compensatory += working;
+    rows.push({ date: holiday.date, name: holiday.name, scope: holiday.scope, open, working, off });
+  });
+  return { rows, compensatoryDays: compensatory };
+}
+
 export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides = {}): Diagnostic {
   const settings = costSettingsOf(store, overrides);
   const active = store.roles.filter((r) => r.enabled);
@@ -180,6 +296,7 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
   const todayLines: PayrollLine[] = [];
   const nextLines: Record<NewScenario, PayrollLine[]> = { '5x2_42': [], '5x2_40': [] };
   const perPerson: Record<NewScenario, PersonCostRow[]> = { '5x2_42': [], '5x2_40': [] };
+  const allPlans: Record<NewScenario, GroupScenario[]> = { '5x2_42': [], '5x2_40': [] };
 
   for (const group of GROUPS) {
     const members = active.filter((r) => group.roles.includes(r.role));
@@ -192,6 +309,7 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
       plans[id] = planGroup(store, lead, id);
       need[id] = plans[id].need;
     }
+    for (const id of NEW_SCENARIOS) allPlans[id].push(plans[id]);
     const today = members.reduce((n, r) => n + r.headcount, 0);
     const avgSalary =
       members.reduce((s, r) => s + r.monthlySalary * r.headcount, 0) / Math.max(today, 1) ||
@@ -257,6 +375,8 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
   }
 
   const sum = (f: (row: DiagnosticRow) => number) => rows.reduce((n, row) => n + f(row), 0);
+  todayLines.push(...intermittentLines(store, '6x1_44'));
+  for (const id of NEW_SCENARIOS) nextLines[id].push(...intermittentLines(store, id));
   const todayPayroll = payroll(todayLines, settings);
   const scenarios = {} as Diagnostic['payroll']['scenarios'];
   for (const id of NEW_SCENARIOS) {
@@ -288,8 +408,12 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
       today: summarize(todayPayroll),
       scenarios,
     },
+    holidays: {
+      '5x2_42': holidaySummary(store, allPlans['5x2_42']),
+      '5x2_40': holidaySummary(store, allPlans['5x2_40']),
+    },
     notes: [
-      'Plantão noturno, feriados trabalhados e horas extras entram na próxima etapa; hoje o custo inclui salários, periculosidade, adicional noturno da escala, intervalo indenizado (12x36), provisões, encargos e benefícios.',
+      'O custo inclui salários, periculosidade, adicional noturno da escala, horas extras e intervalo indenizado do plantão, feriado em dobro (quando escolhido), provisões, encargos e benefícios.',
     ],
   };
 }

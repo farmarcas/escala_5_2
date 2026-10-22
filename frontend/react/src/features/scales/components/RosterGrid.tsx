@@ -10,7 +10,13 @@ import {
   formatMinutes,
 } from './rosterFormat';
 
-type Props = { group: RosterGroup; week: number; dates: string[]; day: number };
+type Props = {
+  group: RosterGroup;
+  week: number;
+  dates: string[];
+  holidays: (string | null)[];
+  day: number;
+};
 
 const TAG: Record<
   RosterPerson['tags'][number],
@@ -34,7 +40,7 @@ function PersonName({ person }: { person: RosterPerson }) {
   );
 }
 
-export function RosterGrid({ group, week, dates, day }: Props) {
+export function RosterGrid({ group, week, dates, holidays, day }: Props) {
   const slots = (i: number) => week * 7 + i;
   return (
     <section aria-label={group.label} className="border-border bg-background rounded-lg border">
@@ -57,6 +63,11 @@ export function RosterGrid({ group, week, dates, day }: Props) {
                 <th key={d} className="px-2 py-2 text-center font-medium">
                   {d}
                   <span className="block font-normal">{formatDayMonth(dates[slots(i)]!)}</span>
+                  {holidays[slots(i)] ? (
+                    <span className="text-warning block text-[0.65rem] leading-tight font-bold">
+                      {holidays[slots(i)]}
+                    </span>
+                  ) : null}
                 </th>
               ))}
               <th className="px-3 py-2 text-right font-medium">Horas</th>

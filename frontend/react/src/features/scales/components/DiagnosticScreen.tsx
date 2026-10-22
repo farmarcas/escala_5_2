@@ -10,6 +10,7 @@ import { formatBRL, formatInt, formatPercent } from '@/lib/formatPtBr';
 import { StackedBar } from '@/components/ui/StackedBar';
 import { useDiagnostic } from '../hooks/useDiagnostic';
 import { CostComponents } from './CostComponents';
+import { HolidaySummary } from './HolidaySummary';
 import { PerPersonCosts } from './PerPersonCosts';
 import { SCENARIO_LABEL, type ScaleStore, type ScenarioKey } from '../types';
 
@@ -162,6 +163,8 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
           que o mínimo, o excedente aparece como reforço.
         </p>
       </section>
+
+      <HolidaySummary summary={d.holidays[scenario]} store={store} />
 
       <section className="border-border bg-background rounded-lg border p-5">
         <h3 className="mb-3 font-bold">Custo direto e indireto</h3>

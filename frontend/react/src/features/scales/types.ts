@@ -29,6 +29,28 @@ export type ScaleRole = {
 
 export type DayOverride = { closed: true } | { start: string; end: string };
 
+export type PlantaoRole = 'farmaceutico' | 'balconista' | 'caixa';
+
+export type PlantaoSettings = {
+  type: 'none' | 'weekly' | 'monthly';
+  weekday: number;
+  cycleWeek: number;
+  start: string;
+  end: string;
+  people: Record<PlantaoRole, number>;
+  cover: 'team' | 'intermittent';
+  indemnifyBreak: boolean;
+};
+
+export type HolidaySettings = {
+  national: boolean;
+  extra: { date: string; name: string }[];
+  rotation: 'rotativa' | 'fixa';
+  compensation: 'folga' | 'dobro';
+  offOnHolidayCounts: boolean;
+  openOnHolidays: boolean;
+};
+
 export type ScaleStoreDraft = {
   name: string;
   city: string;
@@ -51,6 +73,8 @@ export type ScaleStoreDraft = {
     transport: { tripsPerDay: number; fare: number };
     benefits: number;
   };
+  plantao: PlantaoSettings;
+  holidays: HolidaySettings;
   roles: ScaleRole[];
 };
 
@@ -133,8 +157,20 @@ export type Diagnostic = {
       }
     >;
   };
+  holidays: Record<ScenarioKey, HolidaySummary>;
   notes: string[];
 };
+
+export type HolidayRow = {
+  date: string;
+  name: string;
+  scope: 'nacional' | 'estadual_municipal';
+  open: boolean;
+  working: number;
+  off: number;
+};
+
+export type HolidaySummary = { rows: HolidayRow[]; compensatoryDays: number };
 
 export const ROLE_LABELS: Record<RoleName, string> = {
   farmaceutico: 'Farmacêutico(a)',
@@ -170,7 +206,7 @@ export const ALL_SCENARIO_LABEL: Record<ScenarioId, string> = {
   ...SCENARIO_LABEL,
 };
 
-export type ShiftKind = 'abertura' | 'meio' | 'fechamento' | 'unico';
+export type ShiftKind = 'abertura' | 'meio' | 'fechamento' | 'unico' | 'plantao';
 
 export type RosterCell = {
   start: string;
@@ -179,6 +215,7 @@ export type RosterCell = {
   snack: { start: string; end: string } | null;
   kind: ShiftKind;
   workMinutes: number;
+  holiday: boolean;
 };
 
 export type RosterPerson = {
@@ -195,5 +232,6 @@ export type RosterView = {
   scenario: ScenarioId;
   startDate: string;
   dates: string[];
+  holidays: (string | null)[];
   groups: RosterGroup[];
 };

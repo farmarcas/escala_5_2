@@ -2,6 +2,7 @@ import { buildWeekHours, type StoreHoursInput } from './engine/coverage.js';
 import { rosterWithMinimumPeople, type Roster, type RosterCell } from './engine/roster.js';
 import { SCENARIOS, SCHEDULE, type ScenarioId } from './engine/rules.js';
 import { requiredPeople } from './engine/staffing.js';
+import { eventsFor, holidayDays, plantaoExtraPostsPerWeek } from './scales.events.js';
 import { addDays, formatHM } from './engine/time.js';
 import { GROUPS } from './scales.diagnostic.js';
 import type { ScaleRoleInput, ScaleStoreInput } from './scales.schemas.js';
@@ -30,6 +31,7 @@ export type ViewCell = {
   snack: { start: string; end: string } | null;
   kind: RosterCell['kind'];
   workMinutes: number;
+  holiday: boolean;
 };
 
 export type ViewPerson = {
@@ -52,6 +54,7 @@ export type RosterView = {
   scenario: ScenarioId;
   startDate: string;
   dates: string[];
+  holidays: (string | null)[];
   groups: ViewGroup[];
 };
 
@@ -67,6 +70,7 @@ const toCell = (c: RosterCell | null): ViewCell | null =>
         snack: hole(c.snack),
         kind: c.kind,
         workMinutes: c.workMinutes,
+        holiday: c.holiday,
       }
     : null;
 
@@ -80,7 +84,7 @@ export function buildRosterView(store: ScaleStoreInput, scenario: ScenarioId): R
     if (members.length === 0) continue;
     const lead = members.find((r) => r.minInHall > 0) ?? members[0]!;
     const formula = requiredPeople(
-      { ...lead, extraPostsPerWeek: 0 },
+      { ...lead, extraPostsPerWeek: plantaoExtraPostsPerWeek(store, lead.role) },
       week,
       SCENARIOS[scenario],
       options,
@@ -95,6 +99,7 @@ export function buildRosterView(store: ScaleStoreInput, scenario: ScenarioId): R
       snackMinutes: store.rules.snackMinutes,
       sundayRule: store.rules.sundayRule,
       hasOwner: lead.ownerIsPharmacist,
+      events: eventsFor(store, lead.role),
     };
     const minimal = rosterWithMinimumPeople(input, start);
     const need = minimal.count;
@@ -130,6 +135,7 @@ export function buildRosterView(store: ScaleStoreInput, scenario: ScenarioId): R
     scenario,
     startDate: store.scaleStartDate,
     dates: Array.from({ length: SCHEDULE.weeks * 7 }, (_, i) => addDays(store.scaleStartDate, i)),
+    holidays: holidayDays(store).map((h) => h?.name ?? null),
     groups,
   };
 }

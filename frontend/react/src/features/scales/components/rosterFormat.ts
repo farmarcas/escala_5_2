@@ -7,6 +7,7 @@ export const KIND_LABEL: Record<ShiftKind, string> = {
   meio: 'Meio',
   fechamento: 'Fechamento',
   unico: 'Turno único',
+  plantao: 'Plantão noturno',
 };
 
 // Cor por tipo de turno; o texto do tipo sempre acompanha (não depende só da cor).
@@ -15,6 +16,7 @@ export const KIND_CLASS: Record<ShiftKind, string> = {
   meio: 'bg-su-50 text-su-700',
   fechamento: 'bg-at-50 text-warning',
   unico: 'bg-li-20 text-da-600',
+  plantao: 'bg-da-800 text-li-00',
 };
 
 export const formatDayMonth = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;

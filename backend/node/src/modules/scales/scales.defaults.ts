@@ -1,3 +1,5 @@
+import { DEFAULT_HOLIDAYS } from './engine/holidays.js';
+import { DEFAULT_PLANTAO } from './engine/plantao.js';
 import type { ScaleRoleInput, ScaleStoreInput } from './scales.schemas.js';
 
 // Valores de partida de uma loja nova. A tela usa os mesmos (GET /scales/defaults).
@@ -37,10 +39,22 @@ export function defaultStore(scaleStartDate: string): ScaleStoreInput {
       transport: { tripsPerDay: 2, fare: 4.5 },
       benefits: 350,
     },
+    plantao: DEFAULT_PLANTAO,
+    holidays: DEFAULT_HOLIDAYS,
     roles: [
       role({ role: 'farmaceutico', headcount: 2, monthlySalary: 5200 }),
-      role({ role: 'gerente', headcount: 1, monthlySalary: 3800 }),
-      role({ role: 'subgerente', headcount: 1, monthlySalary: 2900 }),
+      role({
+        role: 'gerente',
+        headcount: 1,
+        monthlySalary: 3800,
+        coverage: { mode: 'band', start: '07:00', end: '19:00' },
+      }),
+      role({
+        role: 'subgerente',
+        headcount: 1,
+        monthlySalary: 2900,
+        coverage: { mode: 'band', start: '07:00', end: '19:00' },
+      }),
       role({ role: 'balconista', headcount: 5, monthlySalary: 1950, minInHall: 2 }),
       role({ role: 'caixa', headcount: 2, monthlySalary: 1850 }),
       role({

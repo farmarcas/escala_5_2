@@ -166,3 +166,78 @@ describe('roster', () => {
     expect(r.people).toHaveLength(r.count + 1);
   });
 });
+
+describe('roster: plantão e feriados', () => {
+  const caixa = centroRows['caixa']!.role;
+  const night = (slot: number) =>
+    [
+      {
+        post: 0,
+        kind: 'plantao' as const,
+        start: 22 * 60,
+        end: 31 * 60,
+        lunch: null,
+        snack: null,
+        covered: true,
+      },
+    ].filter(() => slot % 7 === 4);
+  const base = inputFor(caixa, '5x2_42');
+
+  it('plantão semanal: toda sexta à noite alguém cobre e não trabalha no dia seguinte', () => {
+    const r = buildRoster({ ...base, people: 6, events: { plantaoShifts: night } });
+    expect(r.ok).toBe(true);
+    for (const w of [0, 1, 2, 3]) {
+      const slot = w * 7 + 4;
+      const on = r.people.filter((p) => p.days[slot]?.kind === 'plantao');
+      expect(on).toHaveLength(1);
+      expect(on[0]!.days[slot + 1]).toBeNull();
+    }
+  });
+
+  it('feriado fechado: ninguém trabalha naquele dia', () => {
+    const closedSlots = Array.from({ length: 28 }, (_, i) => i === 2);
+    const r = buildRoster({
+      ...base,
+      people: 5,
+      events: { closedSlots, holidaySlots: closedSlots },
+    });
+    expect(r.people.every((p) => p.days[2] === null)).toBe(true);
+  });
+
+  it('feriado trabalhado gera folga compensatória: quem trabalhou tem a semana seguinte mais curta', () => {
+    const holidaySlots = Array.from({ length: 28 }, (_, i) => i === 2);
+    const r = buildRoster({
+      ...base,
+      people: 6,
+      events: { holidaySlots, compensation: 'folga', rotation: 'rotativa' },
+    });
+    expect(r.ok).toBe(true);
+    for (const p of r.people.filter((x) => x.days[2])) {
+      const worked = p.days.slice(7, 14).filter(Boolean).length;
+      expect(worked).toBeLessThanOrEqual(4);
+      expect(p.days[2]!.holiday).toBe(true);
+    }
+  });
+
+  it('pagamento em dobro não cria folga compensatória: a semana seguinte tem tantos dias quanto sem feriado', () => {
+    const holidaySlots = Array.from({ length: 28 }, (_, i) => i === 2);
+    const week2 = (compensation: 'folga' | 'dobro') => {
+      const r = buildRoster({ ...base, people: 6, events: { holidaySlots, compensation } });
+      return r.people.map((p) => p.days.slice(7, 14).filter(Boolean).length);
+    };
+    const shortWeeks = (days: number[]) => days.filter((d) => d < 4).length;
+    expect(shortWeeks(week2('dobro'))).toBeLessThanOrEqual(shortWeeks(week2('folga')));
+    expect(Math.max(...week2('dobro'))).toBeGreaterThanOrEqual(Math.max(...week2('folga')));
+  });
+
+  it('feriados rotativos: os feriados trabalhados ficam distribuídos entre as pessoas', () => {
+    const holidaySlots = Array.from({ length: 28 }, (_, i) => i === 2 || i === 9 || i === 16);
+    const r = buildRoster({
+      ...base,
+      people: 6,
+      events: { holidaySlots, compensation: 'dobro', rotation: 'rotativa' },
+    });
+    const counts = r.people.map((p) => [2, 9, 16].filter((s) => p.days[s]).length);
+    expect(Math.max(...counts) - Math.min(...counts)).toBeLessThanOrEqual(1);
+  });
+});

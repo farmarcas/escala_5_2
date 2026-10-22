@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { buildWeekHours } from './engine/coverage.js';
 import { roleWindows } from './engine/coverage.js';
+import { DEFAULT_HOLIDAYS } from './engine/holidays.js';
+import { DEFAULT_PLANTAO } from './engine/plantao.js';
 import { SUNDAY, windowLength, weekdayOf } from './engine/time.js';
 
 const emptyObject = z.object({}).strict().default({});
@@ -80,6 +82,42 @@ export const roleSchema = z
   })
   .strict();
 
+export const plantaoSchema = z
+  .object({
+    type: z.enum(['none', 'weekly', 'monthly']),
+    weekday: day,
+    cycleWeek: z.number().int().min(1).max(4),
+    start: time,
+    end: time,
+    people: z
+      .object({
+        farmaceutico: z.number().int().min(0).max(5),
+        balconista: z.number().int().min(0).max(5),
+        caixa: z.number().int().min(0).max(5),
+      })
+      .strict(),
+    cover: z.enum(['team', 'intermittent']),
+    indemnifyBreak: z.boolean(),
+  })
+  .strict()
+  .refine((p) => p.start !== p.end, {
+    message: 'Início e fim do plantão não podem ser iguais',
+    path: ['end'],
+  });
+
+export const holidaysSchema = z
+  .object({
+    national: z.boolean(),
+    extra: z
+      .array(z.object({ date: z.iso.date(), name: z.string().trim().min(2).max(80) }).strict())
+      .max(30),
+    rotation: z.enum(['rotativa', 'fixa']),
+    compensation: z.enum(['folga', 'dobro']),
+    offOnHolidayCounts: z.boolean(),
+    openOnHolidays: z.boolean(),
+  })
+  .strict();
+
 const storeShape = z
   .object({
     name: z.string().trim().min(2).max(100),
@@ -89,6 +127,8 @@ const storeShape = z
     taxRegime: z.enum(['simples', 'lucro_presumido_real']),
     hours: hoursSchema,
     rules: rulesSchema,
+    plantao: plantaoSchema.default(DEFAULT_PLANTAO),
+    holidays: holidaysSchema.default(DEFAULT_HOLIDAYS),
     roles: z.array(roleSchema).min(1).max(SCALE_ROLES.length),
   })
   .strict();
@@ -123,6 +163,16 @@ export const scaleStoreSchema = storeShape.superRefine((store, ctx) => {
       message: 'O farmacêutico precisa estar presente em todo o horário de funcionamento',
       path: ['roles', pharmacistIndex],
     });
+  }
+  if (store.plantao.type !== 'none') {
+    const { people } = store.plantao;
+    if (people.farmaceutico < 1) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'O plantão precisa de farmacêutico (Lei 13.021/2014)',
+        path: ['plantao', 'people', 'farmaceutico'],
+      });
+    }
   }
   store.roles.forEach((role, i) => {
     if (role.role === 'entregador' || !role.motorcycle) return;

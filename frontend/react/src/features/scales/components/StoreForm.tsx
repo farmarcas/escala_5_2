@@ -5,13 +5,15 @@ import { FormMessage } from '@/features/auth/components/FormMessage';
 import { useSubmit } from '@/hooks/useSubmit';
 import { fieldErrorsOf, usePreview, type FieldErrors } from '../hooks/usePreview';
 import type { ScaleStoreDraft } from '../types';
+import { HolidaysStep } from './HolidaysStep';
 import { HoursStep } from './HoursStep';
 import { IdentityStep } from './IdentityStep';
 import { LivePreview } from './LivePreview';
+import { PlantaoStep } from './PlantaoStep';
 import { RulesStep } from './RulesStep';
 import { TeamStep } from './TeamStep';
 
-type StepId = 'identidade' | 'horario' | 'equipe' | 'regras';
+type StepId = 'identidade' | 'horario' | 'plantao' | 'equipe' | 'regras' | 'feriados';
 
 const STEPS: { id: StepId; label: string; prefixes: string[] }[] = [
   {
@@ -20,8 +22,10 @@ const STEPS: { id: StepId; label: string; prefixes: string[] }[] = [
     prefixes: ['name', 'city', 'state', 'scaleStartDate', 'taxRegime'],
   },
   { id: 'horario', label: 'Horário de funcionamento', prefixes: ['hours'] },
+  { id: 'plantao', label: 'Plantão noturno', prefixes: ['plantao'] },
   { id: 'equipe', label: 'Equipe por função', prefixes: ['roles'] },
   { id: 'regras', label: 'Regras, benefícios e encargos', prefixes: ['rules'] },
+  { id: 'feriados', label: 'Feriados', prefixes: ['holidays'] },
 ];
 
 type Props = {
@@ -70,8 +74,10 @@ export function StoreForm({ initial, isNew, onSave }: Props) {
   const body = {
     identidade: <IdentityStep draft={draft} errors={errors} onChange={update} />,
     horario: <HoursStep draft={draft} errors={errors} onChange={update} />,
+    plantao: <PlantaoStep draft={draft} errors={errors} onChange={update} />,
     equipe: <TeamStep draft={draft} errors={errors} onChange={update} />,
     regras: <RulesStep draft={draft} errors={errors} onChange={update} />,
+    feriados: <HolidaysStep draft={draft} errors={errors} onChange={update} />,
   }[step];
 
   return (
@@ -103,7 +109,7 @@ export function StoreForm({ initial, isNew, onSave }: Props) {
           {body}
         </section>
         <p className="text-muted-foreground text-xs">
-          Plantão noturno, vendas e feriados entram nas próximas etapas do painel.
+          Vendas, CMV e meta da folha entram na próxima etapa do painel.
         </p>
         {save.error ? <FormMessage tone="error">{save.error}</FormMessage> : null}
         {preview.status === 'invalid' && Object.keys(errors).length > 0 ? (

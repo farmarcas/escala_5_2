@@ -17,7 +17,7 @@ const WEEKS = SCHEDULE.weeks;
 // Quanto vale, em dias de trabalho, manter a pessoa no mesmo tipo de turno.
 const KIND_CHANGE_COST = 2.5;
 
-export type ShiftKind = 'abertura' | 'meio' | 'fechamento' | 'unico';
+export type ShiftKind = 'abertura' | 'meio' | 'fechamento' | 'unico' | 'plantao';
 
 export type Hole = { start: number; end: number };
 
@@ -32,7 +32,7 @@ export type Shift = {
   covered: boolean;
 };
 
-export type RosterCell = Shift & { workMinutes: number };
+export type RosterCell = Shift & { workMinutes: number; holiday: boolean };
 
 export type RosterPerson = {
   index: number;
@@ -60,6 +60,20 @@ export type RosterInput = {
   hasOwner?: boolean;
   // Quanto vale manter a pessoa no mesmo tipo de turno (padrão: KIND_CHANGE_COST). Zero só equilibra os dias.
   kindChangeCost?: number;
+  events?: RosterEvents;
+};
+
+// Feriados, fechamentos e plantão sobre as 4 semanas (posição = semana × 7 + dia).
+export type RosterEvents = {
+  // Dias em que a loja fica fechada (feriado fechado).
+  closedSlots?: boolean[];
+  holidaySlots?: boolean[];
+  compensation?: 'folga' | 'dobro';
+  rotation?: 'rotativa' | 'fixa';
+  // Falso: a folga que cai no feriado não conta e gera outra folga na semana seguinte.
+  offOnHolidayCounts?: boolean;
+  // Turnos de plantão noturno cobertos pela equipe, por posição.
+  plantaoShifts?: (slot: number) => Shift[];
 };
 
 const snap = (minutes: number) => Math.round(minutes / GRID) * GRID;
@@ -167,6 +181,12 @@ type PersonState = {
   lastEndAbs: number;
   weekDays: number;
   streak: number;
+  holidays: number;
+  // Folgas compensatórias ainda por gozar (uma por semana, a partir da semana seguinte) e a desta semana.
+  pending: number;
+  weekOff: number;
+  // Última noite de plantão da pessoa (posição na escala).
+  lastPlantaoSlot: number;
 };
 
 export function buildRoster(input: RosterInput): Roster {
@@ -186,24 +206,38 @@ export function buildRoster(input: RosterInput): Roster {
     lastEndAbs: -Infinity,
     weekDays: 0,
     streak: 0,
+    holidays: 0,
+    pending: 0,
+    weekOff: 0,
+    lastPlantaoSlot: -10,
   }));
   const sundays = people.map(() => new Array<boolean>(WEEKS).fill(false));
   const unfilled: Roster['unfilled'] = [];
 
   for (let week = 0; week < WEEKS; week += 1) {
-    for (const p of people) p.weekDays = 0;
+    for (const p of people) {
+      p.weekDays = 0;
+      p.weekOff = Math.min(1, p.pending);
+      p.pending -= p.weekOff;
+    }
+    const events = input.events;
     for (let day = 0; day < 7; day += 1) {
       const slot = week * 7 + day;
       const dayStart = slot * MINUTES_PER_DAY;
       const assigned = new Set<number>();
-      const shifts = [...dayShifts[day]!].sort((a, b) => a.start - b.start || a.post - b.post);
+      const closed = events?.closedSlots?.[slot] ?? false;
+      const isHoliday = events?.holidaySlots?.[slot] ?? false;
+      const shifts = [
+        ...(closed ? [] : dayShifts[day]!),
+        ...(events?.plantaoShifts?.(slot) ?? []),
+      ].sort((a, b) => a.start - b.start || a.post - b.post);
       for (const shift of shifts) {
         const eligible = people.filter((p) => {
           if (assigned.has(p.index)) return false;
-          if (p.weekDays >= maxDays) return false;
+          if (p.weekDays >= maxDays - p.weekOff) return false;
           if (p.streak >= 6) return false;
           if (dayStart + shift.start - p.lastEndAbs < minRest) return false;
-          if (day === SUNDAY) {
+          if (day === SUNDAY && shift.kind !== 'plantao') {
             if (share === 0) return false;
             const s = sundays[p.index]!;
             const needOff = input.sundayRule === 'um_em_dois' ? 1 : 2;
@@ -214,6 +248,16 @@ export function buildRoster(input: RosterInput): Roster {
           return true;
         });
         const chosen = [...eligible].sort((a, b) => {
+          if (shift.kind === 'plantao') {
+            // Noites seguidas ficam com a mesma pessoa: só ela perde o dia seguinte (descanso de 11 h).
+            const ca = slot - a.lastPlantaoSlot === 1 ? 0 : 1;
+            const cb = slot - b.lastPlantaoSlot === 1 ? 0 : 1;
+            if (ca !== cb) return ca - cb;
+          }
+          if (isHoliday && shift.kind !== 'plantao' && a.holidays !== b.holidays) {
+            // Rotativa: quem trabalhou menos feriados vai primeiro; fixa: sempre o mesmo grupo.
+            return events?.rotation === 'fixa' ? b.holidays - a.holidays : a.holidays - b.holidays;
+          }
           if (day === SUNDAY) {
             const sa = sundays[a.index]!.filter(Boolean).length;
             const sb = sundays[b.index]!.filter(Boolean).length;
@@ -222,7 +266,7 @@ export function buildRoster(input: RosterInput): Roster {
           // Equilibra os dias trabalhados, mas favorece quem já faz esse tipo de turno (turno fixo).
           const cost = (p: PersonState) =>
             p.weekDays +
-            (p.lastKind === shift.kind || shift.kind === 'unico'
+            (p.lastKind === shift.kind || shift.kind === 'unico' || shift.kind === 'plantao'
               ? 0
               : p.lastKind === null
                 ? 0.5
@@ -234,12 +278,25 @@ export function buildRoster(input: RosterInput): Roster {
           continue;
         }
         assigned.add(chosen.index);
-        chosen.days[slot] = { ...shift, workMinutes: workMinutes(shift) };
-        chosen.homeKind ??= shift.kind;
-        if (shift.kind !== 'unico') chosen.lastKind = shift.kind;
+        chosen.days[slot] = { ...shift, workMinutes: workMinutes(shift), holiday: isHoliday };
+        if (shift.kind === 'plantao') chosen.lastPlantaoSlot = slot;
+        else chosen.homeKind ??= shift.kind;
+        if (shift.kind !== 'unico' && shift.kind !== 'plantao') chosen.lastKind = shift.kind;
+        if (isHoliday && shift.kind !== 'plantao') {
+          chosen.holidays += 1;
+          if (events?.compensation !== 'dobro') chosen.pending += 1;
+        }
         chosen.lastEndAbs = dayStart + shift.end;
         chosen.weekDays += 1;
-        if (day === SUNDAY) sundays[chosen.index]![week] = true;
+        if (day === SUNDAY && shift.kind !== 'plantao') sundays[chosen.index]![week] = true;
+      }
+      if (
+        isHoliday &&
+        !closed &&
+        events?.offOnHolidayCounts === false &&
+        events.compensation !== 'dobro'
+      ) {
+        for (const p of people) if (!assigned.has(p.index)) p.pending += 1;
       }
       for (const p of people) p.streak = assigned.has(p.index) ? p.streak + 1 : 0;
     }

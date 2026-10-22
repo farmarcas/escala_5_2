@@ -1,4 +1,6 @@
 import type { Prisma } from '../../generated/prisma/client.js';
+import { DEFAULT_HOLIDAYS } from './engine/holidays.js';
+import { DEFAULT_PLANTAO } from './engine/plantao.js';
 import { prisma } from '../../shared/database/prisma.js';
 import type { ScaleRoleInput, ScaleStoreInput } from './scales.schemas.js';
 import type { ScalesRepository, ScaleStoreRecord } from './scales.service.js';
@@ -26,7 +28,12 @@ const toRole = (row: DbStore['roles'][number]): ScaleRoleInput => ({
 });
 
 const toRecord = (row: DbStore): ScaleStoreRecord => {
-  const config = row.config as { hours: ScaleStoreInput['hours']; rules: ScaleStoreInput['rules'] };
+  const config = row.config as {
+    hours: ScaleStoreInput['hours'];
+    rules: ScaleStoreInput['rules'];
+    plantao?: ScaleStoreInput['plantao'];
+    holidays?: ScaleStoreInput['holidays'];
+  };
   return {
     id: row.id,
     name: row.name,
@@ -37,6 +44,8 @@ const toRecord = (row: DbStore): ScaleStoreRecord => {
     hours: config.hours,
     // Lojas gravadas antes do campo existir: o padrão é indenizar.
     rules: { ...config.rules, indemnifyBreak: config.rules.indemnifyBreak ?? true },
+    plantao: config.plantao ?? DEFAULT_PLANTAO,
+    holidays: config.holidays ?? DEFAULT_HOLIDAYS,
     roles: row.roles.map(toRole),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -65,7 +74,13 @@ const columns = (input: ScaleStoreInput) => ({
   state: input.state,
   scaleStartDate: new Date(`${input.scaleStartDate}T00:00:00.000Z`),
   taxRegime: input.taxRegime,
-  config: { version: CONFIG_VERSION, hours: input.hours, rules: input.rules },
+  config: {
+    version: CONFIG_VERSION,
+    hours: input.hours,
+    rules: input.rules,
+    plantao: input.plantao,
+    holidays: input.holidays,
+  },
 });
 
 export const scalesRepository: ScalesRepository = {

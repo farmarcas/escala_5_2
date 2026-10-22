@@ -70,4 +70,26 @@ describe('scaleStoreSchema', () => {
   it('recusa campos desconhecidos', () => {
     expect(scaleStoreSchema.safeParse({ ...valid(), extra: 1 }).success).toBe(false);
   });
+
+  it('plantão exige farmacêutico e não aceita início igual ao fim', () => {
+    const base = valid();
+    const semFarmaceutico = {
+      ...base,
+      plantao: {
+        ...base.plantao,
+        type: 'weekly' as const,
+        people: { farmaceutico: 0, balconista: 1, caixa: 0 },
+      },
+    };
+    expect(issues(semFarmaceutico).join()).toContain('plantão precisa de farmacêutico');
+    const igual = { ...base, plantao: { ...base.plantao, start: '22:00', end: '22:00' } };
+    expect(issues(igual).join()).toContain('Início e fim do plantão');
+  });
+
+  it('lojas sem plantão e feriados no corpo recebem o padrão', () => {
+    const { plantao: _p, holidays: _h, ...rest } = valid();
+    const r = scaleStoreSchema.safeParse(rest);
+    expect(r.success && r.data.plantao.type).toBe('none');
+    expect(r.success && r.data.holidays.national).toBe(true);
+  });
 });

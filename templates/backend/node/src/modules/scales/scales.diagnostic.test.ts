@@ -13,8 +13,9 @@ describe('diagnose', () => {
   it('mostra o quadro por função com hoje, necessário e contratar', () => {
     const balconista = result.rows.find((r) => r.key === 'balconista')!;
     expect(balconista.today).toBe(5);
-    expect(balconista.need['5x2_42']).toBe(8);
-    expect(balconista.hire['5x2_42']).toBe(3);
+    // Com feriados e compensações ligados a equipe necessária passa da conta simples de postos (8).
+    expect(balconista.need['5x2_42']).toBeGreaterThanOrEqual(8);
+    expect(balconista.hire['5x2_42']).toBe(balconista.need['5x2_42'] - 5);
     expect(result.rows.map((r) => r.key)).not.toContain('comprador');
   });
 
@@ -98,5 +99,64 @@ describe('diagnose', () => {
         4,
       );
     }
+  });
+
+  const withPlantao = (type: 'weekly' | 'monthly', cover: 'team' | 'intermittent' = 'team') => ({
+    ...defaultStore('2026-12-14'),
+    name: 'Centro',
+    city: 'Varginha',
+    state: 'MG',
+    plantao: { ...defaultStore('2026-12-14').plantao, type, cover },
+  });
+
+  it('plantão coberto pela equipe gera adicional noturno, horas extras e intervalo indenizado e pede mais gente', () => {
+    const none = diagnose(defaultStore('2026-12-14'));
+    const d = diagnose(withPlantao('monthly'));
+    const c = d.payroll.scenarios['5x2_42'].components;
+    expect(c.night).toBeGreaterThan(0);
+    expect(c.overtime).toBeGreaterThan(0);
+    expect(c.dsr).toBeGreaterThan(0);
+    expect(c.indemnifiedBreak).toBeGreaterThan(0);
+    expect(d.totals.need['5x2_42']).toBeGreaterThanOrEqual(none.totals.need['5x2_42']);
+  });
+
+  it('plantonista intermitente: não pesa na equipe e paga só as horas convocadas', () => {
+    const none = diagnose(defaultStore('2026-12-14'));
+    const d = diagnose(withPlantao('weekly', 'intermittent'));
+    expect(d.totals.need['5x2_42']).toBe(none.totals.need['5x2_42']);
+    expect(d.payroll.scenarios['5x2_42'].total).toBeGreaterThan(
+      none.payroll.scenarios['5x2_42'].total,
+    );
+    expect(d.payroll.scenarios['5x2_42'].components.overtime).toBe(0);
+  });
+
+  it('resumo dos feriados: Natal e Confraternização entram nas 4 semanas e a soma fecha com a equipe', () => {
+    const d = diagnose({
+      ...defaultStore('2026-12-14'),
+      name: 'Centro',
+      city: 'Varginha',
+      state: 'MG',
+    });
+    const h = d.holidays['5x2_42'];
+    expect(h.rows.map((r) => r.date)).toEqual(['2026-12-25', '2027-01-01']);
+    for (const row of h.rows) expect(row.working + row.off).toBe(d.totals.need['5x2_42']);
+    expect(h.compensatoryDays).toBe(h.rows.reduce((n, r) => n + r.working, 0));
+  });
+
+  it('feriado em dobro cria custo de feriado e nenhuma folga compensatória', () => {
+    const base = { ...defaultStore('2026-12-14'), name: 'Centro', city: 'Varginha', state: 'MG' };
+    const d = diagnose({ ...base, holidays: { ...base.holidays, compensation: 'dobro' } });
+    expect(d.payroll.scenarios['5x2_42'].components.holidayDouble).toBeGreaterThan(0);
+    expect(d.holidays['5x2_42'].compensatoryDays).toBe(0);
+  });
+
+  it('com feriados desligados não há resumo nem custo de feriado', () => {
+    const base = { ...defaultStore('2026-12-14'), name: 'Centro', city: 'Varginha', state: 'MG' };
+    const d = diagnose({
+      ...base,
+      holidays: { ...base.holidays, national: false, compensation: 'dobro' },
+    });
+    expect(d.holidays['5x2_42'].rows).toEqual([]);
+    expect(d.payroll.scenarios['5x2_42'].components.holidayDouble).toBe(0);
   });
 });
