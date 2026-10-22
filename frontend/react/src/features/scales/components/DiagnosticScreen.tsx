@@ -9,6 +9,7 @@ import { FormMessage } from '@/features/auth/components/FormMessage';
 import { formatBRL, formatInt, formatPercent } from '@/lib/formatPtBr';
 import { StackedBar } from '@/components/ui/StackedBar';
 import { useDiagnostic } from '../hooks/useDiagnostic';
+import { AlertsBlock } from './AlertsBlock';
 import { CostComponents } from './CostComponents';
 import { HolidaySummary } from './HolidaySummary';
 import { SalesSection } from './SalesSection';
@@ -37,11 +38,33 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
   if (state.status === 'error') return <FormMessage tone="error">{state.message}</FormMessage>;
 
   const d = state.diagnostic;
+  const alerts = state.alerts;
   const label = SCENARIO_LABEL[scenario];
   const pay = d.payroll.scenarios[scenario];
   const hireRows = d.rows.filter((r) => r.hire[scenario] > 0);
   const hireText = hireRows.map((r) => `${r.hire[scenario]} ${r.label.toLowerCase()}`).join(', ');
   const hireTotal = d.totals.hire[scenario];
+  // Resumo que o consultor recebe, só com o que ajuda a atender (sem a escala completa).
+  const snapshot = {
+    profile: {
+      loja: store.name,
+      cidade: `${store.city}/${store.state}`,
+      regime: d.payroll.taxRegime,
+      pessoasHoje: d.totals.today,
+    },
+    result: {
+      cenario: label,
+      contratar: d.totals.hire[scenario],
+      folhaHoje: Math.round(d.payroll.today.total),
+      folhaNova: Math.round(pay.total),
+      diferencaMensal: Math.round(pay.monthlyDifference),
+      funcoes: d.rows.map((r) => ({
+        funcao: r.label,
+        hoje: r.today,
+        necessario: r.need[scenario],
+      })),
+    },
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -235,6 +258,8 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
         </p>
         <PerPersonCosts rows={pay.perPerson} />
       </section>
+
+      <AlertsBlock alerts={alerts} storeId={store.id} snapshot={snapshot} />
 
       {d.notes.map((note) => (
         <p key={note} className="text-muted-foreground text-xs">

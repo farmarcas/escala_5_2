@@ -87,6 +87,7 @@ export type ScaleStoreDraft = {
     snackMinutes: number;
     provisions: boolean;
     indemnifyBreak: boolean;
+    cct: string;
     rat: number;
     thirdParty: number;
     transport: { tripsPerDay: number; fare: number };
@@ -154,6 +155,16 @@ export type PersonCostRow = {
   charges: number;
   benefits: number;
   total: number;
+};
+
+export type Alert = { id: string; severity: 'danger' | 'warning' | 'info'; message: string };
+
+export type LegalRule = {
+  id: string;
+  title: string;
+  text: string;
+  source: string;
+  effectiveFrom: string;
 };
 
 export type Diagnostic = {

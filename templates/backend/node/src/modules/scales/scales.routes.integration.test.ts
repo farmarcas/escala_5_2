@@ -1,3 +1,4 @@
+import ExcelJS from 'exceljs';
 import request from 'supertest';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { prisma } from '../../shared/database/prisma.js';
@@ -70,6 +71,41 @@ describe('scales routes', () => {
     );
     expect((await agent.get(`/api/v1/scales/stores/${id}/roster?scenario=7x0`)).status).toBe(400);
 
+    expect(diag.body.alerts.length).toBeGreaterThan(0);
+
+    const rules = await agent.get('/api/v1/scales/rules');
+    expect(rules.status).toBe(200);
+    expect(rules.body.rules.length).toBeGreaterThan(5);
+
+    const xlsx = await agent
+      .get(`/api/v1/scales/stores/${id}/report.xlsx`)
+      .buffer(true)
+      .parse((res, cb) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (c: Buffer) => chunks.push(c));
+        res.on('end', () => cb(null, Buffer.concat(chunks)));
+      });
+    expect(xlsx.status).toBe(200);
+    expect(xlsx.headers['content-disposition']).toContain('escalas-');
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(xlsx.body as never);
+    expect(wb.worksheets.map((s) => s.name)).toEqual([
+      'Comparativo',
+      'Plano de ação',
+      'Modelo por função',
+      'Escala 6x1 44h',
+      'Escala 5x2 42h',
+      'Escala 5x2 40h',
+    ]);
+    // Os números do Excel são os mesmos da tela (diagnóstico da API).
+    const total = wb.getWorksheet('Comparativo')!.getRow(4 + diag.body.diagnostic.rows.length);
+    expect(total.getCell(1).value).toBe('Total');
+    expect(total.getCell(4).value).toBe(diag.body.diagnostic.totals.need['5x2_42']);
+    expect(total.getCell(6).value).toBe(diag.body.diagnostic.totals.hire['5x2_42']);
+    const roster42 = wb.getWorksheet('Escala 5x2 42h')!;
+    expect(roster42.rowCount).toBeGreaterThan(20);
+    expect((await agent.get(`/api/v1/scales/stores/${id}/report.xlsx`)).status).toBe(200);
+
     expect((await agent.delete(`/api/v1/scales/stores/${id}`)).status).toBe(204);
     expect((await agent.get(`/api/v1/scales/stores/${id}`)).status).toBe(404);
   });
@@ -96,6 +132,7 @@ describe('scales routes', () => {
     expect((await b.agent.delete(`/api/v1/scales/stores/${id}`)).status).toBe(404);
     expect((await b.agent.get(`/api/v1/scales/stores/${id}/diagnostic`)).status).toBe(404);
     expect((await b.agent.get(`/api/v1/scales/stores/${id}/roster`)).status).toBe(404);
+    expect((await b.agent.get(`/api/v1/scales/stores/${id}/report.xlsx`)).status).toBe(404);
     expect((await b.agent.get('/api/v1/scales/stores')).body.data).toEqual([]);
   });
 
@@ -105,6 +142,7 @@ describe('scales routes', () => {
     const preview = await agent.post('/api/v1/scales/preview').send(centro);
     expect(preview.status).toBe(200);
     expect(preview.body.diagnostic.rows.length).toBeGreaterThan(5);
+    expect(Array.isArray(preview.body.alerts)).toBe(true);
     expect((await agent.get('/api/v1/scales/stores')).body.data).toEqual([]);
     const defaults = await agent.get('/api/v1/scales/defaults');
     expect(defaults.body.store.scaleStartDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);

@@ -74,10 +74,10 @@ description: "Tarefas: Painel de Escalas 5x2 (Farmarcas)"
 
 ## Fatia 6: Relatório, alertas, consultor e regras
 
-- [ ] T034 [P] [S6] Testes de alertas (farmacêutico fora de parte do horário, plantão, faixas que passam do turno em N minutos, CCT não cadastrada) e `engine/alerts.ts`
-- [ ] T035 [S6] Instalar `exceljs`; `report/xlsx.ts` com as abas do plano; `GET /scales/stores/:id/report.xlsx`; teste de integração que lê o arquivo e confere números iguais aos da tela
-- [ ] T036 [S6] Aba "Regras aplicadas" (`GET /scales/rules`), bloco "Alertas e ajustes", botão do Excel e "Falar com um consultor" com resumo da simulação
-- [ ] T037 [S6] Revisão visual e roteiro 5
+- [x] T034 [P] [S6] Testes de alertas (farmacêutico fora de parte do horário, plantão, faixas que passam do turno em N minutos, CCT não cadastrada) e `engine/alerts.ts`
+- [x] T035 [S6] Instalar `exceljs`; `report/xlsx.ts` com as abas do plano; `GET /scales/stores/:id/report.xlsx`; teste de integração que lê o arquivo e confere números iguais aos da tela
+- [x] T036 [S6] Aba "Regras aplicadas" (`GET /scales/rules`), bloco "Alertas e ajustes", botão do Excel e "Falar com um consultor" com resumo da simulação
+- [x] T037 [S6] Revisão visual e roteiro 5
 
 ## Fatia 7: Fechamento
 

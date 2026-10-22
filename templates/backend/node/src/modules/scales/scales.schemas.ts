@@ -56,6 +56,8 @@ export const rulesSchema = z
     provisions: z.boolean(),
     // Na 12x36 o intervalo não gozado é pago com 50% de acréscimo.
     indemnifyBreak: z.boolean().default(true),
+    // Sindicato e vigência da convenção coletiva (texto livre); vazio gera um alerta.
+    cct: z.string().trim().max(300).default(''),
     rat: z.number().min(0).max(0.06),
     thirdParty: z.number().min(0).max(0.1),
     transport: z

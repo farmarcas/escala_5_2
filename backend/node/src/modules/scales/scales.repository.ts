@@ -45,7 +45,11 @@ const toRecord = (row: DbStore): ScaleStoreRecord => {
     taxRegime: row.taxRegime,
     hours: config.hours,
     // Lojas gravadas antes do campo existir: o padrão é indenizar.
-    rules: { ...config.rules, indemnifyBreak: config.rules.indemnifyBreak ?? true },
+    rules: {
+      ...config.rules,
+      indemnifyBreak: config.rules.indemnifyBreak ?? true,
+      cct: config.rules.cct ?? '',
+    },
     plantao: config.plantao ?? DEFAULT_PLANTAO,
     holidays: config.holidays ?? DEFAULT_HOLIDAYS,
     sales: config.sales ?? DEFAULT_SALES,

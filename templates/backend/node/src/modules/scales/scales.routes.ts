@@ -23,12 +23,14 @@ export const scalesRouter = (
   router.use(requireSession);
   router.get('/defaults', validate(listRequestSchema), controller.defaults);
   router.post('/preview', validate(bodyRequestSchema), controller.preview);
+  router.get('/rules', validate(listRequestSchema), controller.rules);
   router.get('/stores', validate(listRequestSchema), controller.list);
   router.post('/stores', validate(bodyRequestSchema), controller.create);
   router.get('/stores/:id', validate(idRequestSchema), controller.getById);
   router.put('/stores/:id', validate(updateRequestSchema), controller.update);
   router.delete('/stores/:id', validate(idRequestSchema), controller.remove);
   router.post('/stores/:id/duplicate', validate(idRequestSchema), controller.duplicate);
+  router.get('/stores/:id/report.xlsx', validate(idRequestSchema), controller.report);
   router.get('/stores/:id/roster', validate(rosterRequestSchema), controller.roster);
   router.get('/stores/:id/diagnostic', validate(diagnosticRequestSchema), controller.diagnostic);
 

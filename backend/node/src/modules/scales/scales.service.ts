@@ -1,6 +1,8 @@
 import { ConflictError } from '../../shared/errors/conflict-error.js';
 import { NotFoundError } from '../../shared/errors/not-found-error.js';
 import { diagnose, type DiagnosticOverrides } from './scales.diagnostic.js';
+import { buildReport } from './scales.report.js';
+import { buildAlerts } from './scales.alerts.js';
 import { buildRosterView } from './scales.roster.js';
 import type { ScenarioId } from './engine/rules.js';
 import type { ScaleStoreInput } from './scales.schemas.js';
@@ -76,7 +78,8 @@ export const makeScalesService = (repo: ScalesRepository) => {
     },
 
     preview(input: ScaleStoreInput) {
-      return diagnose(input);
+      const diagnostic = diagnose(input);
+      return { diagnostic, alerts: buildAlerts(input, diagnostic) };
     },
 
     async roster(groupId: string, id: string, scenario: ScenarioId) {
@@ -84,7 +87,14 @@ export const makeScalesService = (repo: ScalesRepository) => {
     },
 
     async diagnostic(groupId: string, id: string, overrides: DiagnosticOverrides = {}) {
-      return diagnose(await getById(groupId, id), overrides);
+      const store = await getById(groupId, id);
+      const diagnostic = diagnose(store, overrides);
+      return { diagnostic, alerts: buildAlerts(store, diagnostic) };
+    },
+
+    async report(groupId: string, id: string) {
+      const store = await getById(groupId, id);
+      return { name: store.name, buffer: await buildReport(store) };
     },
   };
 };

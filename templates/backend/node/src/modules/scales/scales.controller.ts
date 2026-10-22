@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import type { z } from 'zod';
 import { getPrincipal } from '../../shared/middlewares/require-session.js';
 import { readValidated } from '../../shared/middlewares/validate.js';
+import { LEGAL_RULES, REFERENCE_DATE, SCENARIOS } from './engine/rules.js';
 import { addDays, mondayOf } from './engine/time.js';
 import { defaultStore } from './scales.defaults.js';
 import type {
@@ -52,7 +53,7 @@ export const makeScalesController = (service: ScalesService, today: () => string
 
   preview(_req: Request, res: Response) {
     const { body } = readValidated<z.infer<typeof bodyRequestSchema>>(res);
-    res.json({ diagnostic: service.preview(body) });
+    res.json(service.preview(body));
   },
 
   async roster(_req: Request, res: Response) {
@@ -62,14 +63,40 @@ export const makeScalesController = (service: ScalesService, today: () => string
     });
   },
 
+  rules(_req: Request, res: Response) {
+    res.json({
+      asOf: REFERENCE_DATE,
+      rules: LEGAL_RULES,
+      scenarios: Object.values(SCENARIOS).map(({ id, label, daysPerWeek, weeklyHours }) => ({
+        id,
+        label,
+        daysPerWeek,
+        weeklyHours,
+      })),
+    });
+  },
+
+  async report(_req: Request, res: Response) {
+    const { params } = readValidated<z.infer<typeof idRequestSchema>>(res);
+    const { name, buffer } = await service.report(getPrincipal(res).groupId, params.id);
+    const slug = name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .toLowerCase();
+    res
+      .type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+      .set('Content-Disposition', `attachment; filename="escalas-${slug || 'loja'}.xlsx"`)
+      .send(buffer);
+  },
+
   async diagnostic(_req: Request, res: Response) {
     const { params, query } = readValidated<z.infer<typeof diagnosticRequestSchema>>(res);
     const overrides = {
       ...(query.regime && { taxRegime: query.regime }),
       ...(query.provisions && { provisions: query.provisions === 'true' }),
     };
-    res.json({
-      diagnostic: await service.diagnostic(getPrincipal(res).groupId, params.id, overrides),
-    });
+    res.json(await service.diagnostic(getPrincipal(res).groupId, params.id, overrides));
   },
 });

@@ -1,6 +1,7 @@
 import { Checkbox } from '@/components/ui/Checkbox';
 import { NumberField } from '@/components/ui/NumberField';
 import { SelectField } from '@/components/ui/SelectField';
+import { TextField } from '@/components/ui/TextField';
 import type { FieldErrors } from '../hooks/usePreview';
 import type { ScaleStoreDraft } from '../types';
 
@@ -59,6 +60,14 @@ export function RulesStep({ draft, errors, onChange }: Props) {
           onChange={(e) => set({ provisions: e.target.checked })}
         />
       </div>
+      <TextField
+        label="Convenção coletiva (CCT) aplicável"
+        value={rules.cct}
+        placeholder="Sindicato e vigência, por exemplo: Sindicato do Comércio de Varginha, 2026"
+        hint="Texto livre. O painel não aplica regras específicas da convenção, só avisa que conferir é importante."
+        onChange={(e) => set({ cct: e.target.value })}
+        className="sm:col-span-2"
+      />
       <div className="sm:col-span-2">
         <Checkbox
           label="Indenizar o intervalo na 12x36"

@@ -13,8 +13,8 @@ import { SimulationPage } from './SimulationPage';
 import { StoreEditorPage } from './StoreEditorPage';
 import { StoresPage } from './StoresPage';
 import {
-  ComingSoonTab,
   NewStoreScreen,
+  RulesTab,
   StoreDataTab,
   StoreDiagnosticTab,
   StoreIndexRedirect,
@@ -50,15 +50,7 @@ export function AppRoutes() {
             <Route path="dados" element={<StoreDataTab />} />
             <Route path="escala" element={<StoreRosterTab />} />
             <Route path="diagnostico" element={<StoreDiagnosticTab />} />
-            <Route
-              path="regras"
-              element={
-                <ComingSoonTab
-                  title="Regras aplicadas"
-                  description="Em breve: a lista da base legal usada nos cálculos."
-                />
-              }
-            />
+            <Route path="regras" element={<RulesTab />} />
           </Route>
           <Route path="/lojas" element={<StoresPage />} />
           <Route path="/lojas/nova" element={<StoreEditorPage />} />
