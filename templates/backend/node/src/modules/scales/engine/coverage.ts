@@ -41,12 +41,16 @@ export type CoverageRole = {
   daysMask: number;
   // Regime da função: a 12x36 não depende do cenário.
   scaleType?: 'normal' | 'doze_x_trinta_e_seis';
+  // Gerência: o turno de apoio do meio do dia não é obrigatório; só abertura e fechamento (que se cobrem).
+  leadership?: boolean;
 };
 
 export type ShiftModel = {
   // Jornada trabalhada por dia, em minutos (sem o almoço).
   dailyMinutes: number;
   lunchMinutes: number;
+  // 5x2: os turnos de vários postos dividem os almoços; na 6x1 cada posto exige a cadeia completa.
+  pooled?: boolean;
 };
 
 export function shiftModelFor(
@@ -56,9 +60,17 @@ export function shiftModelFor(
 ): ShiftModel {
   if (role.scaleType === 'doze_x_trinta_e_seis') {
     // 12x36: o intervalo é indenizado, então não abre buraco na cobertura.
-    return { dailyMinutes: SCHEDULE.twelveByThirtySix.dailyHours * 60, lunchMinutes: 0 };
+    return {
+      dailyMinutes: SCHEDULE.twelveByThirtySix.dailyHours * 60,
+      lunchMinutes: 0,
+      pooled: false,
+    };
   }
-  return { dailyMinutes: Math.round(scenario.dailyHours * 60), lunchMinutes };
+  return {
+    dailyMinutes: Math.round(scenario.dailyHours * 60),
+    lunchMinutes,
+    pooled: scenario.daysPerWeek <= 5,
+  };
 }
 
 // Janela que a função precisa cobrir em cada dia (loja aberta ∩ faixa da função ∩ dias da função).
@@ -88,9 +100,45 @@ export function shiftsPerPost(windowMin: number, shift: ShiftModel): number {
   return needsLunch ? Math.max(shifts, 2) : shifts;
 }
 
-// Postos por dia da semana (7 posições): mínimo no salão × turnos por posto.
+// Turnos mínimos por posto: os turnos se sobrepõem e cada um almoça enquanto o outro está presente.
+// Dois turnos de jornada J e almoço L cobrem até 2J − L... em geral k turnos cobrem k·(J − L) + 2L.
+export function shiftsPerPostMin(windowMin: number, shift: ShiftModel): number {
+  if (windowMin <= 0) return 0;
+  const needsLunch = shift.lunchMinutes > 0 && windowMin > SCHEDULE.lunchRequiredAboveMinutes;
+  if (!needsLunch) return shiftsPerPost(windowMin, shift);
+  const useful = Math.max(shift.dailyMinutes - shift.lunchMinutes, 1);
+  return Math.max(2, Math.ceil((windowMin - 2 * shift.lunchMinutes) / useful));
+}
+
+// Turnos de um dia: `full` é o desenho completo (abertura, apoio e fechamento por posto) e `required` o que
+// precisa estar preenchido. Na 5x2 os postos dividem os almoços e o painel de referência pede
+// ceil(mínimo × janela ÷ (jornada − almoço)) turnos; na 6x1 e na gerência vale o desenho de cada posto.
+export function dayShiftCounts(
+  role: CoverageRole,
+  windowMin: number,
+  shift: ShiftModel,
+): { full: number; required: number } {
+  if (windowMin <= 0 || role.minInHall <= 0) return { full: 0, required: 0 };
+  const m = role.minInHall;
+  if (role.leadership && shift.pooled) {
+    const k = shiftsPerPostMin(windowMin, shift);
+    return { full: m * k, required: m * k };
+  }
+  const k = shiftsPerPost(windowMin, shift);
+  const full = m * k;
+  const needsLunch = shift.lunchMinutes > 0 && windowMin > SCHEDULE.lunchRequiredAboveMinutes;
+  if (!shift.pooled || !needsLunch) return { full, required: full };
+  const useful = Math.max(shift.dailyMinutes - shift.lunchMinutes, 1);
+  const pooled = Math.ceil((m * windowMin) / useful - 1e-9);
+  return {
+    full,
+    required: Math.min(full, Math.max(m * shiftsPerPostMin(windowMin, shift), pooled)),
+  };
+}
+
+// Postos por dia da semana (7 posições): turnos obrigatórios de cada dia.
 export function postsPerDay(role: CoverageRole, week: WeekHours, shift: ShiftModel): number[] {
-  return roleWindows(role, week).map((w) => role.minInHall * shiftsPerPost(windowLength(w), shift));
+  return roleWindows(role, week).map((w) => dayShiftCounts(role, windowLength(w), shift).required);
 }
 
 export { ALL_DAYS_MASK };

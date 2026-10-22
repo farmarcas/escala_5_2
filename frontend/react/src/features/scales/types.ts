@@ -120,6 +120,7 @@ export type DiagnosticRow = {
   gap6x1: number;
   hire: Record<ScenarioKey, number>;
   reinforcement: Record<ScenarioKey, number>;
+  cost: { today: number } & Record<ScenarioKey, number>;
 };
 
 export type Components = {

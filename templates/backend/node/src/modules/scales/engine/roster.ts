@@ -2,6 +2,7 @@ import {
   roleWindows,
   shiftModelFor,
   shiftsPerPost,
+  shiftsPerPostMin,
   type CoverageRole,
   type WeekHours,
 } from './coverage.js';
@@ -30,6 +31,8 @@ export type Shift = {
   snack: Hole | null;
   // Todo o salão fica coberto durante os buracos de almoço e lanche.
   covered: boolean;
+  // Turno de apoio do meio do dia: entra quando há gente; sem ele, abertura e fechamento se cobrem.
+  soft?: boolean;
 };
 
 export type RosterCell = Shift & { workMinutes: number; holiday: boolean };
@@ -60,6 +63,12 @@ export type RosterInput = {
   hasOwner?: boolean;
   // Quanto vale manter a pessoa no mesmo tipo de turno (padrão: KIND_CHANGE_COST). Zero só equilibra os dias.
   kindChangeCost?: number;
+  // Reservar quem trabalha no domingo no começo da semana (padrão: sim).
+  holdSunday?: boolean;
+  // Nos dias úteis, dá preferência a quem não poderia trabalhar no próximo domingo (guarda a capacidade de quem pode).
+  saveSundayPeople?: boolean;
+  // Gira a ordem de desempate entre as pessoas (variação determinística para a escala fechar).
+  tieOffset?: number;
   events?: RosterEvents;
 };
 
@@ -103,10 +112,14 @@ function placeHole(
   key: 'lunch' | 'snack',
   from: number,
   to: number,
+  relaxed = false,
 ) {
   if (minutes <= 0) return;
   const span = shift.end - shift.start;
-  const margin = Math.min(180, Math.max(60, Math.floor((span - minutes) / 3 / GRID) * GRID));
+  // Preferido: no miolo do turno. Relaxado: a partir de 2 h do começo, para o almoço caber na sobreposição.
+  const margin = relaxed
+    ? 120
+    : Math.min(180, Math.max(60, Math.floor((span - minutes) / 3 / GRID) * GRID));
   const lo = snap(shift.start + margin);
   const hi = shift.end - margin - minutes;
   const mid = (shift.start + shift.end - minutes) / 2;
@@ -134,13 +147,46 @@ function placeHole(
   shift[key] = best ? { start: best.t, end: best.t + minutes } : null;
 }
 
+// Almoço (coberto pelos outros turnos da posição) e lanche de cada turno; recalcula quando a cadeia muda.
+function placeChainHoles(
+  chain: Shift[],
+  lunchMinutes: number,
+  needsLunch: boolean,
+  snackMinutes: number,
+  span: number,
+  window: { start: number; end: number },
+) {
+  const run = (relaxed: boolean) => {
+    for (const s of chain) {
+      s.lunch = null;
+      s.snack = null;
+    }
+    if (needsLunch)
+      for (const s of chain)
+        placeHole(s, chain, lunchMinutes, 'lunch', window.start, window.end, relaxed);
+    const snack = lunchMinutes > 0 ? snackMinutes : 0;
+    if (snack > 0 && span > 4 * 60)
+      for (const s of chain) placeHole(s, chain, snack, 'snack', window.start, window.end, relaxed);
+    const ok = presence(chain, window.start, window.end).every((n) => n >= 1);
+    for (const s of chain) s.covered = ok;
+    return ok;
+  };
+  if (chain.length > 1 || needsLunch) {
+    if (!run(false)) run(true);
+  } else run(false);
+}
+
 // Turnos de um dia: por posição, turnos igualmente espaçados cobrindo a janela da função.
 export function shiftsOfDay(input: Omit<RosterInput, 'people' | 'hasOwner'>, day: number): Shift[] {
   const window = roleWindows(input.role, input.week)[day];
   const len = windowLength(window ?? null);
   if (!window || len <= 0) return [];
   const model = shiftModelFor(input.scenario, input.role, input.lunchMinutes);
-  const k = shiftsPerPost(len, model);
+  const kFull =
+    input.role.leadership && model.pooled
+      ? shiftsPerPostMin(len, model)
+      : shiftsPerPost(len, model);
+  const k = kFull;
   const needsLunch = model.lunchMinutes > 0 && len > SCHEDULE.lunchRequiredAboveMinutes;
   const posts = Math.max(input.role.minInHall, 0);
   const all: Shift[] = [];
@@ -152,21 +198,23 @@ export function shiftsOfDay(input: Omit<RosterInput, 'people' | 'hasOwner'>, day
       if (i === k - 1) start = window.end - span;
       const kind: ShiftKind =
         k === 1 ? 'unico' : i === 0 ? 'abertura' : i === k - 1 ? 'fechamento' : 'meio';
-      chain.push({ post, kind, start, end: start + span, lunch: null, snack: null, covered: true });
+      chain.push({
+        post,
+        kind,
+        start,
+        end: start + span,
+        lunch: null,
+        snack: null,
+        covered: true,
+      });
     }
-    if (needsLunch)
-      for (const s of chain)
-        placeHole(s, chain, model.lunchMinutes, 'lunch', window.start, window.end);
-    const snack = model.lunchMinutes > 0 ? input.snackMinutes : 0;
-    if (snack > 0 && span > 4 * 60)
-      for (const s of chain) placeHole(s, chain, snack, 'snack', window.start, window.end);
-    if (k > 1 || needsLunch) {
-      const p = presence(chain, window.start, window.end);
-      const ok = p.every((n) => n >= 1);
-      for (const s of chain) s.covered = ok;
-    }
+    placeChainHoles(chain, model.lunchMinutes, needsLunch, input.snackMinutes, span, window);
     all.push(...chain);
   }
+  // O turno de apoio (meio do dia) é opcional: sem ele, abertura e fechamento se cobrem. O dimensionamento
+  // conta os turnos obrigatórios; o apoio entra quando sobra gente.
+  // Na 6x1 o desenho completo de cada posto é obrigatório.
+  if (model.pooled) for (const sh of all) if (sh.kind === 'meio') sh.soft = true;
   return all;
 }
 
@@ -187,6 +235,8 @@ type PersonState = {
   weekOff: number;
   // Última noite de plantão da pessoa (posição na escala).
   lastPlantaoSlot: number;
+  // Reservada no começo da semana para o domingo (a semana guarda gente para o dia mais difícil).
+  sundayHold: boolean;
 };
 
 export function buildRoster(input: RosterInput): Roster {
@@ -195,6 +245,8 @@ export function buildRoster(input: RosterInput): Roster {
   const minRest = twelve ? 36 * 60 : SCHEDULE.minRestBetweenShiftsMinutes;
   const share = SUNDAY_WORK_SHARE[input.sundayRule];
   const kindCost = input.kindChangeCost ?? KIND_CHANGE_COST;
+  // Desempate fixo e determinístico, que rotaciona com `tieOffset` para variar a ordem das pessoas.
+  const rotate = (index: number) => (index + (input.tieOffset ?? 0)) % Math.max(input.people, 1);
 
   const dayShifts = Array.from({ length: 7 }, (_, d) => shiftsOfDay(input, d));
   const people: PersonState[] = Array.from({ length: input.people }, (_, index) => ({
@@ -210,6 +262,7 @@ export function buildRoster(input: RosterInput): Roster {
     pending: 0,
     weekOff: 0,
     lastPlantaoSlot: -10,
+    sundayHold: false,
   }));
   const sundays = people.map(() => new Array<boolean>(WEEKS).fill(false));
   const unfilled: Roster['unfilled'] = [];
@@ -221,6 +274,27 @@ export function buildRoster(input: RosterInput): Roster {
       p.pending -= p.weekOff;
     }
     const events = input.events;
+    // Reserva quem trabalha no domingo antes de a semana gastar a capacidade de todos.
+    const sundaySlot = week * 7 + SUNDAY;
+    const sundayRequired =
+      (events?.closedSlots?.[sundaySlot] ?? false) ? [] : dayShifts[SUNDAY]!.filter((x) => !x.soft);
+    for (const p of people) p.sundayHold = false;
+    if (input.holdSunday !== false && share > 0 && sundayRequired.length > 0) {
+      const needOff = input.sundayRule === 'um_em_dois' ? 1 : 2;
+      const free = people
+        .filter((p) => {
+          let run = 0;
+          for (let w = week - 1; w >= 0 && sundays[p.index]![w]; w -= 1) run += 1;
+          return run < needOff && p.weekDays < maxDays - p.weekOff;
+        })
+        .sort(
+          (a, b) =>
+            sundays[a.index]!.filter(Boolean).length - sundays[b.index]!.filter(Boolean).length ||
+            rotate(a.index) - rotate(b.index),
+        );
+      for (const p of free.slice(0, sundayRequired.length)) p.sundayHold = true;
+    }
+    const sundayStart = Math.min(...sundayRequired.map((x) => x.start), Number.POSITIVE_INFINITY);
     for (let day = 0; day < 7; day += 1) {
       const slot = week * 7 + day;
       const dayStart = slot * MINUTES_PER_DAY;
@@ -230,11 +304,43 @@ export function buildRoster(input: RosterInput): Roster {
       const shifts = [
         ...(closed ? [] : dayShifts[day]!),
         ...(events?.plantaoShifts?.(slot) ?? []),
-      ].sort((a, b) => a.start - b.start || a.post - b.post);
+      ].sort(
+        (a, b) =>
+          Number(Boolean(a.soft)) - Number(Boolean(b.soft)) || a.start - b.start || a.post - b.post,
+      );
+      // Quem ficou com cada turno do dia, e as posições que perderam o turno de apoio.
+      const given: { person: PersonState; shift: Shift }[] = [];
+      const droppedPosts = new Set<number>();
+      // Turno de apoio só entra se sobrar capacidade da semana depois de garantir os turnos obrigatórios dos próximos dias.
+      const requiredAhead = () => {
+        let n = 0;
+        for (let d = day + 1; d < 7; d += 1) {
+          const sl = week * 7 + d;
+          if (!(events?.closedSlots?.[sl] ?? false))
+            n += dayShifts[d]!.filter((x) => !x.soft).length;
+          n += events?.plantaoShifts?.(sl).length ?? 0;
+        }
+        return n;
+      };
+      const spareCapacity = () =>
+        people.reduce((n, p) => n + Math.max(0, maxDays - p.weekOff - p.weekDays), 0);
       for (const shift of shifts) {
+        if (shift.soft && spareCapacity() - 1 < requiredAhead()) {
+          droppedPosts.add(shift.post);
+          continue;
+        }
         const eligible = people.filter((p) => {
           if (assigned.has(p.index)) return false;
-          if (p.weekDays >= maxDays - p.weekOff) return false;
+          const held = p.sundayHold && day < SUNDAY && shift.kind !== 'plantao' ? 1 : 0;
+          if (p.weekDays + held >= maxDays - p.weekOff) return false;
+          // Quem está reservada para o domingo não pode fechar a loja no sábado (11 h de descanso).
+          if (
+            p.sundayHold &&
+            day === SUNDAY - 1 &&
+            dayStart + shift.end + minRest >
+              (SUNDAY - day) * MINUTES_PER_DAY + dayStart + sundayStart
+          )
+            return false;
           if (p.streak >= 6) return false;
           if (dayStart + shift.start - p.lastEndAbs < minRest) return false;
           if (day === SUNDAY && shift.kind !== 'plantao') {
@@ -248,6 +354,8 @@ export function buildRoster(input: RosterInput): Roster {
           return true;
         });
         const chosen = [...eligible].sort((a, b) => {
+          if (day === SUNDAY && shift.kind !== 'plantao' && a.sundayHold !== b.sundayHold)
+            return a.sundayHold ? -1 : 1;
           if (shift.kind === 'plantao') {
             // Noites seguidas ficam com a mesma pessoa: só ela perde o dia seguinte (descanso de 11 h).
             const ca = slot - a.lastPlantaoSlot === 1 ? 0 : 1;
@@ -264,20 +372,31 @@ export function buildRoster(input: RosterInput): Roster {
             if (sa !== sb) return sa - sb;
           }
           // Equilibra os dias trabalhados, mas favorece quem já faz esse tipo de turno (turno fixo).
+          const saves = (p: PersonState) => {
+            if (!input.saveSundayPeople || day === SUNDAY || share === 0) return 0;
+            const needOff = input.sundayRule === 'um_em_dois' ? 1 : 2;
+            let run = 0;
+            for (let w = week - 1; w >= 0 && sundays[p.index]![w]; w -= 1) run += 1;
+            return run < needOff ? 1 : 0;
+          };
           const cost = (p: PersonState) =>
+            saves(p) +
             p.weekDays +
             (p.lastKind === shift.kind || shift.kind === 'unico' || shift.kind === 'plantao'
               ? 0
               : p.lastKind === null
                 ? 0.5
                 : kindCost);
-          return cost(a) - cost(b) || a.index - b.index;
+          return cost(a) - cost(b) || rotate(a.index) - rotate(b.index);
         })[0];
         if (!chosen) {
-          unfilled.push({ week, day, shift });
+          // O turno de apoio é opcional: sem gente, abertura e fechamento seguem se cobrindo.
+          if (shift.soft) droppedPosts.add(shift.post);
+          else unfilled.push({ week, day, shift });
           continue;
         }
         assigned.add(chosen.index);
+        given.push({ person: chosen, shift });
         chosen.days[slot] = { ...shift, workMinutes: workMinutes(shift), holiday: isHoliday };
         if (shift.kind === 'plantao') chosen.lastPlantaoSlot = slot;
         else chosen.homeKind ??= shift.kind;
@@ -297,6 +416,25 @@ export function buildRoster(input: RosterInput): Roster {
         events.compensation !== 'dobro'
       ) {
         for (const p of people) if (!assigned.has(p.index)) p.pending += 1;
+      }
+      // Posições sem o turno de apoio: refaz almoço e lanche só com os turnos que sobraram.
+      for (const post of droppedPosts) {
+        const mine = given.filter((g) => g.shift.post === post && g.shift.kind !== 'plantao');
+        const window = roleWindows(input.role, input.week)[day];
+        if (!window || mine.length === 0) continue;
+        const model = shiftModelFor(input.scenario, input.role, input.lunchMinutes);
+        const clones = mine.map((g) => ({ ...g.shift, soft: false }));
+        const span = clones[0]!.end - clones[0]!.start;
+        const needsLunch =
+          model.lunchMinutes > 0 && windowLength(window) > SCHEDULE.lunchRequiredAboveMinutes;
+        placeChainHoles(clones, model.lunchMinutes, needsLunch, input.snackMinutes, span, window);
+        mine.forEach((g, i) => {
+          g.person.days[slot] = {
+            ...clones[i]!,
+            workMinutes: workMinutes(clones[i]!),
+            holiday: isHoliday,
+          };
+        });
       }
       for (const p of people) p.streak = assigned.has(p.index) ? p.streak + 1 : 0;
     }
@@ -319,10 +457,25 @@ export function rosterWithMinimumPeople(
   let last: Roster | null = null;
   for (let extra = 0; extra <= limit; extra += 1) {
     const count = Math.max(start, 0) + extra;
-    // Primeiro tenta manter turnos estáveis; se não fechar com esta equipe, só equilibra os dias.
-    for (const kindChangeCost of [KIND_CHANGE_COST, 0]) {
-      last = buildRoster({ ...input, people: count + owner, kindChangeCost });
-      if (last.ok) return { ...last, count };
+    // Tenta, nesta ordem, variações do mesmo método até a escala fechar com esta equipe.
+    for (let tieOffset = 0; tieOffset < Math.max(count + owner, 1); tieOffset += 1) {
+      for (const [holdSunday, saveSundayPeople] of [
+        [true, false],
+        [false, true],
+        [false, false],
+      ] as const) {
+        for (const kindChangeCost of [KIND_CHANGE_COST, 0]) {
+          last = buildRoster({
+            ...input,
+            people: count + owner,
+            kindChangeCost,
+            holdSunday,
+            saveSundayPeople,
+            tieOffset,
+          });
+          if (last.ok) return { ...last, count };
+        }
+      }
     }
   }
   return { ...(last as Roster), count: Math.max(start, 0) + limit };

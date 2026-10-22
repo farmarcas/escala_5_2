@@ -2,7 +2,7 @@ import { buildWeekHours, type StoreHoursInput } from './engine/coverage.js';
 import { rosterWithMinimumPeople, type Roster, type RosterCell } from './engine/roster.js';
 import { SCENARIOS, SCHEDULE, type ScenarioId } from './engine/rules.js';
 import { requiredPeople } from './engine/staffing.js';
-import { eventsFor, holidayDays, plantaoExtraPostsPerWeek } from './scales.events.js';
+import { coverageRole, eventsFor, holidayDays, plantaoExtraPostsPerWeek } from './scales.events.js';
 import { addDays, formatHM } from './engine/time.js';
 import { GROUPS } from './scales.diagnostic.js';
 import type { ScaleRoleInput, ScaleStoreInput } from './scales.schemas.js';
@@ -84,7 +84,7 @@ export function buildRosterView(store: ScaleStoreInput, scenario: ScenarioId): R
     if (members.length === 0) continue;
     const lead = members.find((r) => r.minInHall > 0) ?? members[0]!;
     const formula = requiredPeople(
-      { ...lead, extraPostsPerWeek: plantaoExtraPostsPerWeek(store, lead.role) },
+      { ...coverageRole(lead), extraPostsPerWeek: plantaoExtraPostsPerWeek(store, lead.role) },
       week,
       SCENARIOS[scenario],
       options,
@@ -92,7 +92,7 @@ export function buildRosterView(store: ScaleStoreInput, scenario: ScenarioId): R
     const start = formula.ok ? formula.people : 0;
     const today = members.reduce((n, r) => n + r.headcount, 0);
     const input = {
-      role: lead,
+      role: coverageRole(lead),
       week,
       scenario: SCENARIOS[scenario],
       lunchMinutes: store.rules.lunchMinutes,

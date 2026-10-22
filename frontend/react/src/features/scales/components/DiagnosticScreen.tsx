@@ -129,7 +129,7 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
           folgas, intervalos e folga dominical.
         </p>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[40rem] text-left text-sm">
+          <table className="w-full min-w-[52rem] text-left text-sm">
             <thead className="text-muted-foreground text-xs uppercase">
               <tr>
                 <th className="py-2 pr-3">Função</th>
@@ -137,7 +137,9 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
                 <th className="px-3 py-2 text-right">Necessário 6x1</th>
                 <th className="px-3 py-2">Situação hoje</th>
                 <th className="px-3 py-2 text-right">Necessário {label}</th>
-                <th className="py-2 pl-3">Nova lei</th>
+                <th className="px-3 py-2">Nova lei</th>
+                <th className="px-3 py-2 text-right">Custo hoje</th>
+                <th className="py-2 pl-3 text-right">Custo {label}</th>
               </tr>
             </thead>
             <tbody className="divide-border divide-y">
@@ -156,7 +158,7 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
                     )}
                   </td>
                   <td className="px-3 py-3 text-right tabular-nums">{r.need[scenario]}</td>
-                  <td className="py-3 pl-3">
+                  <td className="px-3 py-3">
                     {r.hire[scenario] > 0 ? (
                       <StatusPill tone="warning">Contratar {r.hire[scenario]}</StatusPill>
                     ) : r.reinforcement[scenario] > 0 ? (
@@ -164,6 +166,10 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
                     ) : (
                       <StatusPill tone="ok">Completo</StatusPill>
                     )}
+                  </td>
+                  <td className="px-3 py-3 text-right tabular-nums">{formatBRL(r.cost.today)}</td>
+                  <td className="py-3 pl-3 text-right tabular-nums">
+                    {formatBRL(r.cost[scenario])}
                   </td>
                 </tr>
               ))}
@@ -177,7 +183,11 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
                 <td className="px-3 py-3 text-right tabular-nums">{d.totals.need['6x1_44']}</td>
                 <td />
                 <td className="px-3 py-3 text-right tabular-nums">{d.totals.need[scenario]}</td>
-                <td className="py-3 pl-3">Contratar {hireTotal}</td>
+                <td className="px-3 py-3">Contratar {hireTotal}</td>
+                <td className="px-3 py-3 text-right tabular-nums">
+                  {formatBRL(d.payroll.today.total)}
+                </td>
+                <td className="py-3 pl-3 text-right tabular-nums">{formatBRL(pay.total)}</td>
               </tr>
             </tfoot>
           </table>

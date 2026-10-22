@@ -18,6 +18,7 @@ import {
   holidayDays,
   plantaoExtraPostsPerWeek,
   plantaoRoleOf,
+  coverageRole,
 } from './scales.events.js';
 import { rosterWithMinimumPeople, type Roster } from './engine/roster.js';
 import { requiredPeople } from './engine/staffing.js';
@@ -52,6 +53,8 @@ export type DiagnosticRow = {
   gap6x1: number;
   hire: Record<NewScenario, number>;
   reinforcement: Record<NewScenario, number>;
+  // Folha mensal da função: hoje e em cada cenário.
+  cost: { today: number } & Record<NewScenario, number>;
 };
 
 export type PersonCostRow = {
@@ -145,7 +148,7 @@ function planGroup(store: ScaleStoreInput, lead: ScaleRoleInput, id: ScenarioId)
   const week = buildWeekHours(store.hours as StoreHoursInput);
   const options = { lunchMinutes: store.rules.lunchMinutes, sundayRule: store.rules.sundayRule };
   const formula = requiredPeople(
-    { ...lead, extraPostsPerWeek: plantaoExtraPostsPerWeek(store, lead.role) },
+    { ...coverageRole(lead), extraPostsPerWeek: plantaoExtraPostsPerWeek(store, lead.role) },
     week,
     SCENARIOS[id],
     options,
@@ -164,7 +167,7 @@ function planGroup(store: ScaleStoreInput, lead: ScaleRoleInput, id: ScenarioId)
   if (start === 0) return none;
   const result = rosterWithMinimumPeople(
     {
-      role: lead,
+      role: coverageRole(lead),
       week,
       scenario: SCENARIOS[id],
       lunchMinutes: store.rules.lunchMinutes,
@@ -324,10 +327,14 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
       need[id] = plans[id].need;
     }
     for (const id of NEW_SCENARIOS) allPlans[id].push(plans[id]);
+    const marks = {
+      today: todayLines.length,
+      '5x2_42': nextLines['5x2_42'].length,
+      '5x2_40': nextLines['5x2_40'].length,
+    };
     const today = members.reduce((n, r) => n + r.headcount, 0);
-    const avgSalary =
-      members.reduce((s, r) => s + r.monthlySalary * r.headcount, 0) / Math.max(today, 1) ||
-      lead.monthlySalary;
+    // Quem entra por contratação recebe o menor salário da função (o painel de referência faz o mesmo na gerência).
+    const avgSalary = Math.min(...members.map((r) => r.monthlySalary));
     const motorcycle = members.some((r) => r.motorcycle);
 
     for (const r of members) {
@@ -385,6 +392,11 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
       gap6x1: need['6x1_44'] - today,
       hire,
       reinforcement,
+      cost: {
+        today: payroll(todayLines.slice(marks.today), settings).total,
+        '5x2_42': payroll(nextLines['5x2_42'].slice(marks['5x2_42']), settings).total,
+        '5x2_40': payroll(nextLines['5x2_40'].slice(marks['5x2_40']), settings).total,
+      },
     });
   }
 

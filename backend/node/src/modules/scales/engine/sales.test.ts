@@ -41,4 +41,23 @@ describe('sales', () => {
       Number.POSITIVE_INFINITY,
     );
   });
+
+  it('confere com o painel de referência: vendas de R$ 1,5 mi, CMV 70%, meta 12%', () => {
+    const cfg = {
+      ...DEFAULT_SALES,
+      enabled: true,
+      monthlySales: 1_500_000,
+      cmvRate: 0.7,
+      payrollTargetRate: 0.12,
+    };
+    const next = analyzeSales(cfg, 103_360)!;
+    expect(Math.round(next.breakEvenSales)).toBe(344_533);
+    expect(Math.round(next.targetSales)).toBe(861_333);
+    expect(next.payrollShare * 100).toBeCloseTo(6.89, 2);
+    expect((1 - cfg.cmvRate - next.payrollShare) * 100).toBeCloseTo(23.11, 2);
+    const today = analyzeSales(cfg, 54_705)!;
+    expect(Math.round(today.breakEvenSales)).toBe(182_350);
+    expect(Math.round(today.targetSales)).toBe(455_875);
+    expect(next.growthToTarget).toBe(0);
+  });
 });

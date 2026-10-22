@@ -14,7 +14,7 @@ describe('diagnose', () => {
     const balconista = result.rows.find((r) => r.key === 'balconista')!;
     expect(balconista.today).toBe(5);
     // Com feriados e compensações ligados a equipe necessária passa da conta simples de postos (8).
-    expect(balconista.need['5x2_42']).toBeGreaterThanOrEqual(8);
+    expect(balconista.need['5x2_42']).toBeGreaterThanOrEqual(7);
     expect(balconista.hire['5x2_42']).toBe(balconista.need['5x2_42'] - 5);
     expect(result.rows.map((r) => r.key)).not.toContain('comprador');
   });

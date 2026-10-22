@@ -67,3 +67,9 @@ export function plantaoExtraPostsPerWeek(store: ScaleStoreInput, roleName: strin
   if (!role || store.plantao.type === 'none' || store.plantao.cover !== 'team') return 0;
   return plantaoNightsPerWeek(store.plantao) * store.plantao.people[role];
 }
+
+// Gerência não exige o turno de apoio do meio do dia; as demais funções, sim (como o painel de referência).
+export const coverageRole = <T extends { role: string }>(role: T): T & { leadership: boolean } => ({
+  ...role,
+  leadership: role.role === 'gerente' || role.role === 'subgerente',
+});

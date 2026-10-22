@@ -53,7 +53,14 @@ Loja segunda a sábado 07–22 + domingo 08–14 (BASE), funções padrão: 5x2 
 ## 3. Conclusão sobre a igualdade numérica
 O resultado de "necessário" da referência é de **algoritmo heurístico**, com efeitos que parecem não ligados à função (por exemplo, o balconista 5x2 vai de 8 para 7 ao mudar o lanche para 0, o almoço para 30 ou 90, ao colocar o caixa em 12x36 ou ao incluir um gerente, e volta a 8 com lanche de 20 min, almoço de 120 min, "feriados em escala fixa" e outras mudanças). Isso indica que a contagem depende do arranjo global das folgas e dos feriados, e não só de cada função isolada. Reproduzir **exatamente** todos os números em qualquer configuração exigiria reproduzir o algoritmo deles. A meta realista do nosso motor: regras claras e legais, resultado determinístico, e diferença **dentro de ±1 pessoa por função** na maioria dos casos, com cada diferença explicada.
 
-## 4. Conferência do nosso motor com plantão e feriados ligados (Fatia 4)
-Loja Centro completa (plantão mensal, feriados nacionais com folga compensatória), 5x2 · 42h, nosso motor × referência:
-farmacêutico 6 × 5 · gerência 5 × 3 (com cobertura de 07h às 19h o nosso dá 3 sem feriados) · balconista 10 × 8 · caixa 5 × 4 · perfumista, serviços gerais e entregador 3 × 3.
-Causas conhecidas: (1) cada feriado trabalhado gera 1 folga compensatória (como a referência, que mostra 34), e a nossa escala gulosa perde cerca de 1 pessoa por função grande ao encaixar essas folgas; (2) a referência dimensiona o balconista com menos turnos por dia do que contamos (ver seção 3); (3) a gerência na referência tem cobertura menor que o horário inteiro. Diferença total de contratações: nosso motor pede mais gente que a referência no caso completo. Isso é conservador (não deixa o salão descoberto) e está registrado para revisão com o jurídico e a operação.
+## 4. Conferência do nosso motor com o painel de referência (atualizada em 23/10/2026)
+Depois de ler a configuração real da loja de exemplo da referência (gerência "integral" com folga no domingo; perfumista, serviços gerais e entregador só de segunda a sábado) e as escalas que ela gera, o motor foi ajustado: turno de apoio do meio do dia opcional na 5x2, almoços cobertos pela sobreposição de turnos, gerência com só abertura e fechamento na 5x2, reserva de gente para o domingo, contratados pelo menor salário da função.
+
+**Loja Centro sem plantão (Simples)**: **igual à referência** em tudo — pessoas por função (6x1 e 5x2 · 42h), folha por função, folha de hoje (R$ 54.710 × R$ 54.705), folha da nova escala (R$ 103.360 × R$ 103.360) e 13 contratações.
+
+**Loja Centro completa (plantão mensal, Simples)**: farmacêutico 5×5, gerência 3×3, caixa 4×4, perfumista, serviços gerais e entregador 3×3, balconista 9×8 (+1 na 5x2 e −1 na 6x1). Folha de hoje R$ 55.685 × R$ 56.241 (−1,0%), nova R$ 118.227 × R$ 115.628 (+2,2%), 16 contratações × 15. Em Presumido/Real, a folha fica a menos de 3% do PDF (R$ 68.701 e R$ 141.455).
+Causas das diferenças que sobram: (1) o gerador de escala não acha arranjo de 8 balconistas com plantão e folgas compensatórias dos feriados (a referência acha); (2) o custo do plantão (adicional noturno, horas extras, intervalo indenizado e DSR) é calculado por outra conta na referência: no total da loja a diferença é de cerca de 1–2%.
+
+**Vendas e CMV**: as fórmulas batem com a referência (vendas de R$ 1,5 mi, CMV 70%, meta 12%): venda mínima para pagar mercadoria e folha R$ 344.533, venda pela meta R$ 861.333, folha sobre a venda 6,9% e sobra de R$ 23,11 a cada R$ 100.
+
+**Ainda sem conferir com a referência**: 12x36, feriados fechados, plantão semanal e intermitente, e o custo do plantão por componente.

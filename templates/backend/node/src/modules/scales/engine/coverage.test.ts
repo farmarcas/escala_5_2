@@ -30,7 +30,8 @@ describe('coverage', () => {
 
   it('domingo curto dá 1 posto e mínimo 2 duplica', () => {
     expect(postsPerDay(all, week, shift42)).toEqual([3, 3, 3, 3, 3, 3, 1]);
-    expect(postsPerDay({ ...all, minInHall: 2 }, week, shift42)).toEqual([6, 6, 6, 6, 6, 6, 2]);
+    // Na 5x2 os dois postos dividem os almoços: ceil(2 × 15 h ÷ 7h24) = 5 turnos obrigatórios por dia.
+    expect(postsPerDay({ ...all, minInHall: 2 }, week, shift42)).toEqual([5, 5, 5, 5, 5, 5, 2]);
   });
 
   it('faixa da função recorta o horário da loja e respeita os dias', () => {
