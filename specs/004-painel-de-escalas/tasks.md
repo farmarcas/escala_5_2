@@ -22,16 +22,16 @@ description: "Tarefas: Painel de Escalas 5x2 (Farmarcas)"
 ## Fatia 1: Fundação e diagnóstico simples
 
 ### Banco
-- [ ] T003 [S1] `schema.prisma`: colunas novas de `stores` (`state`, `scale_start_date`, `tax_regime`, `config`) e de `store_roles` (`enabled`, `scale_type`, `coverage_mode`, `band_start`, `band_end`, `days_mask`, `owner_is_pharmacist`, `motorcycle`) e valores novos do enum de função (ver [data-model.md](data-model.md))
-- [ ] T004 [S1] Migration aditiva (`prisma migrate diff` revisada e aplicada); confirmar sem divergência e sem alterar dados
+- [x] T003 [S1] `schema.prisma`: colunas novas de `stores` (`state`, `scale_start_date`, `tax_regime`, `config`) e de `store_roles` (`enabled`, `scale_type`, `coverage_mode`, `band_start`, `band_end`, `days_mask`, `owner_is_pharmacist`, `motorcycle`) e valores novos do enum de função (ver [data-model.md](data-model.md))
+- [x] T004 [S1] Migration aditiva (`prisma migrate diff` revisada e aplicada); confirmar sem divergência e sem alterar dados
 
 ### Motor (testes primeiro)
-- [ ] T005 [P] [S1] `engine/time.test.ts` e `engine/time.ts`: horas e minutos, janelas que passam da meia-noite, semana a partir de uma data, dias da semana e máscara de dias
-- [ ] T006 [P] [S1] `engine/rules.ts`: regras e valores com base legal e vigência (jornadas por cenário, 11 h, intervalos, adicional noturno, encargos por regime, provisões, VT, EC 141/2026 e transição), com teste de que toda regra tem fonte
-- [ ] T007 [S1] `engine/coverage.test.ts` e `engine/coverage.ts`: postos por dia e função (turnos sobrepostos para manter o mínimo no salão durante almoço e lanche); casos: janela de 15 h dá 3 turnos, de 10 h a 12 h dá 2, domingo curto dá 1, mínimo 2 duplica
-- [ ] T008 [S1] `engine/staffing.test.ts` e `engine/staffing.ts`: menor número de pessoas por função e cenário (dias por semana, horas do cenário, rodízio de domingo, 11 h entre jornadas); casos simples conferidos à mão
-- [ ] T009 [S1] `engine/fixtures/reference-centro.ts` e `engine/reference.golden.test.ts`: o caso de conferência da spec com os números esperados da referência; diferenças aceitas ficam escritas no teste com a causa (calibração)
-- [ ] T010 [S1] `engine/costs.test.ts` e `engine/costs.ts` (versão básica): salários, FGTS, INSS por regime, provisões; folha hoje x nova
+- [x] T005 [P] [S1] `engine/time.test.ts` e `engine/time.ts`: horas e minutos, janelas que passam da meia-noite, semana a partir de uma data, dias da semana e máscara de dias
+- [x] T006 [P] [S1] `engine/rules.ts`: regras e valores com base legal e vigência (jornadas por cenário, 11 h, intervalos, adicional noturno, encargos por regime, provisões, VT, EC 141/2026 e transição), com teste de que toda regra tem fonte
+- [x] T007 [S1] `engine/coverage.test.ts` e `engine/coverage.ts`: postos por dia e função (turnos sobrepostos para manter o mínimo no salão durante almoço e lanche); casos: janela de 15 h dá 3 turnos, de 10 h a 12 h dá 2, domingo curto dá 1, mínimo 2 duplica
+- [x] T008 [S1] `engine/staffing.test.ts` e `engine/staffing.ts`: menor número de pessoas por função e cenário (dias por semana, horas do cenário, rodízio de domingo, 11 h entre jornadas); casos simples conferidos à mão
+- [x] T009 [S1] `engine/fixtures/reference-centro.ts` e `engine/reference.golden.test.ts`: o caso de conferência da spec com os números esperados da referência; diferenças aceitas ficam escritas no teste com a causa (calibração)
+- [x] T010 [S1] `engine/costs.test.ts` e `engine/costs.ts` (versão básica): salários, FGTS, INSS por regime, provisões; folha hoje x nova
 
 ### API
 - [ ] T011 [P] [S1] `modules/scales/stores/scales.schemas.test.ts` e `.schemas.ts`: validação da configuração (passos 1, 2 e 4 nesta fatia), funções ativas, farmacêutico obrigatório, `config.version`

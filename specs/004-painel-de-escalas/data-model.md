@@ -1,6 +1,6 @@
 # Modelo de dados: Painel de Escalas
 
-Reaproveita `groups`, `users`, `sessions`, `contact_requests`. Evolui `stores` e `store_roles` (expand agora, contract na última fatia). Convenções do projeto: UUIDv7, `snake_case`, plural, `timestamptz`, exclusão lógica.
+Reaproveita `groups`, `users`, `sessions`, `contact_requests`. **Decisão da Fatia 1:** em vez de evoluir `stores`/`store_roles`, o painel usa tabelas novas `scale_stores` e `scale_store_roles` (mesmos campos descritos abaixo, com nome único entre lojas ativas e checagens no banco); o produto antigo segue intacto até a última fatia, que remove as tabelas antigas (contract). Convenções do projeto: UUIDv7, `snake_case`, plural, `timestamptz`, exclusão lógica.
 
 ## stores (colunas novas)
 | Campo | Tipo | Regra |

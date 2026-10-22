@@ -47,6 +47,37 @@ enum ContactMode {
   detalhado
 }
 
+// Painel de Escalas (spec 004). Tabelas próprias: o produto antigo (stores/simulations) sai na última fatia.
+enum ScaleTaxRegime {
+  simples
+  lucro_presumido_real
+}
+
+enum ScaleRole {
+  farmaceutico
+  gerente
+  subgerente
+  balconista
+  caixa
+  perfumista
+  servicos_gerais
+  entregador
+  comprador
+  conferente
+  atendente_digital
+  expedicao
+}
+
+enum ScaleType {
+  normal
+  doze_x_trinta_e_seis
+}
+
+enum CoverageMode {
+  all
+  band
+}
+
 enum EmailTokenKind {
   verify
   reset
@@ -64,6 +95,7 @@ model Group {
   users         User[]
   stores        Store[]
   simulations   Simulation[]
+  scaleStores   ScaleStore[]
 
   @@map("groups")
 }
@@ -201,4 +233,51 @@ model ContactRequest {
 
   @@index([createdAt(sort: Desc)])
   @@map("contact_requests")
+}
+
+// Loja do Painel de Escalas. `config` guarda os passos 2, 3, 5, 6 e 7 (horário, plantão, regras, vendas, feriados)
+// em JSON versionado e validado por Zod: é sempre lido e gravado junto e nunca consultado por dentro.
+// Nome único entre lojas ativas do grupo (índice parcial no SQL da migration).
+model ScaleStore {
+  id             String          @id @default(uuid(7)) @db.Uuid
+  groupId        String          @map("group_id") @db.Uuid
+  name           String
+  city           String
+  state          String          @db.Char(2)
+  scaleStartDate DateTime        @map("scale_start_date") @db.Date
+  taxRegime      ScaleTaxRegime  @default(simples) @map("tax_regime")
+  config         Json            @default("{}")
+  deletedAt      DateTime?       @map("deleted_at") @db.Timestamptz(3)
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  group          Group           @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  roles          ScaleStoreRole[]
+
+  @@index([groupId, deletedAt])
+  @@map("scale_stores")
+}
+
+// Equipe por função. Gerente e subgerente são funções separadas (quantidade e salário próprios) e a tela
+// as junta no quadro. `band_start`/`band_end` valem quando a cobertura é por faixa de horário ("HH:MM").
+model ScaleStoreRole {
+  id                String       @id @default(uuid(7)) @db.Uuid
+  storeId           String       @map("store_id") @db.Uuid
+  role              ScaleRole
+  enabled           Boolean      @default(true)
+  headcount         Int          @db.SmallInt
+  monthlySalary     Decimal      @map("monthly_salary") @db.Decimal(12, 2)
+  scaleType         ScaleType    @default(normal) @map("scale_type")
+  minInHall         Int          @default(1) @map("min_in_hall") @db.SmallInt
+  coverageMode      CoverageMode @default(all) @map("coverage_mode")
+  bandStart         String?      @map("band_start")
+  bandEnd           String?      @map("band_end")
+  daysMask          Int          @default(127) @map("days_mask") @db.SmallInt
+  ownerIsPharmacist Boolean      @default(false) @map("owner_is_pharmacist")
+  motorcycle        Boolean      @default(false)
+  createdAt         DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+  store             ScaleStore   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, role])
+  @@map("scale_store_roles")
 }
