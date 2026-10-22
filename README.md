@@ -36,6 +36,33 @@ Para desligar sem perder os dados: `/parar-ambiente`.
 
 ---
 
+## 🧮 Calculadora do fim da escala 6x1 (Farmarcas)
+
+Primeira funcionalidade construída neste repositório: estima o custo de passar de 44h para 40h semanais (escala 5x2) em grupos de farmácias. Especificação completa em [specs/001-calculadora-impacto-escala](specs/001-calculadora-impacto-escala/spec.md).
+
+| Quero... | Onde |
+|---|---|
+| Usar o **modo rápido** (público, sem cadastro) | http://localhost:3000 |
+| Usar o **modo detalhado** por loja (conta, lojas, ações, simulações salvas) | http://localhost:3000/cadastrar |
+| Ver os **e-mails de teste** (confirmação de conta, recuperação de senha) | http://localhost:8025 (nada sai do computador) |
+| **Ajustar as premissas** (encargos, margens, coberturas, ausência, efeito das ações) | `backend/node/src/config/premises.ts`: mude o valor, atualize `version` e `reviewedAt` e reinicie a API (`docker compose restart api`) |
+| **Consultar os contatos** pedidos pelos usuários | veja abaixo |
+
+**Consultar contatos (equipe da Farmarcas).** A consulta usa a chave `ADMIN_API_KEY` do `.env` (troque o valor de teste em produção):
+
+```bash
+# lista em JSON
+curl -H "x-admin-key: $ADMIN_API_KEY" "http://localhost:4000/api/v1/admin/contact-requests"
+# planilha CSV (abre direto no Excel)
+curl -H "x-admin-key: $ADMIN_API_KEY" "http://localhost:4000/api/v1/admin/contact-requests?format=csv" -o contatos.csv
+# anonimizar os dados pessoais de um contato (pedido do titular, LGPD)
+curl -X POST -H "x-admin-key: $ADMIN_API_KEY" "http://localhost:4000/api/v1/admin/contact-requests/<id>/anonymize"
+```
+
+**Antes de publicar fora do computador**, faltam decisões que não são de código: validar as premissas com finanças e RH, definir o servidor de e-mail (`MAIL_*`) e o remetente, revisar o texto da política de privacidade e escolher onde a aplicação vai rodar. Atrás de um proxy ou balanceador, configurar também o `trust proxy` e um limite de tentativas compartilhado (hoje em memória). O roteiro de validação está em [quickstart.md](specs/001-calculadora-impacto-escala/quickstart.md).
+
+---
+
 ## 🧭 Como criar algo novo
 
 Toda aplicação ou funcionalidade nova passa pelo **Spec Kit**, na ordem abaixo. Você aprova cada etapa antes de a IA seguir.
