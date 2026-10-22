@@ -34,17 +34,17 @@ description: "Tarefas: Painel de Escalas 5x2 (Farmarcas)"
 - [x] T010 [S1] `engine/costs.test.ts` e `engine/costs.ts` (versão básica): salários, FGTS, INSS por regime, provisões; folha hoje x nova
 
 ### API
-- [ ] T011 [P] [S1] `modules/scales/stores/scales.schemas.test.ts` e `.schemas.ts`: validação da configuração (passos 1, 2 e 4 nesta fatia), funções ativas, farmacêutico obrigatório, `config.version`
-- [ ] T012 [S1] `scales.repository.ts`, `scales.service.ts`, `scales.routes.ts` e testes de integração: CRUD de lojas, duplicar, isolamento entre grupos, `POST /scales/preview` e `GET /scales/stores/:id/diagnostic`
-- [ ] T013 [S1] Registrar em `app.ts` com sessão obrigatória; premissas antigas continuam servindo o produto antigo até a fatia 7
+- [x] T011 [P] [S1] `modules/scales/stores/scales.schemas.test.ts` e `.schemas.ts`: validação da configuração (passos 1, 2 e 4 nesta fatia), funções ativas, farmacêutico obrigatório, `config.version`
+- [x] T012 [S1] `scales.repository.ts`, `scales.service.ts`, `scales.routes.ts` e testes de integração: CRUD de lojas, duplicar, isolamento entre grupos, `POST /scales/preview` e `GET /scales/stores/:id/diagnostic`
+- [x] T013 [S1] Registrar em `app.ts` com sessão obrigatória; premissas antigas continuam servindo o produto antigo até a fatia 7
 
 ### Tela e layout
-- [ ] T014 [P] [S1] Componentes de base com o visual do Alquimia: `Tabs`, `SegmentedControl`, `Stepper` (índice lateral e progresso), `KpiCard`, `StatusPill`, `Skeleton`, `EmptyState`, `DaySelector`, `StackedBar`, `BarCompare` (só CSS)
-- [ ] T015 [S1] Estrutura do painel: cabeçalho com seletor de loja, abas e menu da conta; `features/scales/` com rotas `/painel`, `/painel/lojas/:id/{dados,escala,diagnostico,regras}`; a rota `/` passa a levar ao painel
-- [ ] T016 [S1] Cadastro em passos (1, 2 e 4): `store-form/` com valores de exemplo, validação na hora, tabela de equipe por função (hoje, salário, escala, mínimo no salão, cobertura, dias), funções opcionais desligadas
-- [ ] T017 [S1] Aba Diagnóstico (versão básica): cartões-resumo, seletor 42h/40h, quadro por função com selos e barras, folha hoje x nova em barras
-- [ ] T018 [S1] Lista de lojas, "Nova loja", "Duplicar", "Excluir" e estados vazio, carregando e erro
-- [ ] T019 [S1] Revisão visual da fatia (imagens em largura de computador e de celular), auditoria de contraste, ajustes; conferir o roteiro 1 e o roteiro 6 do [quickstart.md](quickstart.md)
+- [x] T014 [P] [S1] Componentes de base com o visual do Alquimia: `Tabs`, `SegmentedControl`, `Stepper` (índice lateral e progresso), `KpiCard`, `StatusPill`, `Skeleton`, `EmptyState`, `DaySelector`, `StackedBar`, `BarCompare` (só CSS)
+- [x] T015 [S1] Estrutura do painel: cabeçalho com seletor de loja, abas e menu da conta; `features/scales/` com rotas `/painel`, `/painel/lojas/:id/{dados,escala,diagnostico,regras}`; a rota `/` passa a levar ao painel
+- [x] T016 [S1] Cadastro em passos (1, 2 e 4): `store-form/` com valores de exemplo, validação na hora, tabela de equipe por função (hoje, salário, escala, mínimo no salão, cobertura, dias), funções opcionais desligadas
+- [x] T017 [S1] Aba Diagnóstico (versão básica): cartões-resumo, seletor 42h/40h, quadro por função com selos e barras, folha hoje x nova em barras
+- [x] T018 [S1] Lista de lojas, "Nova loja", "Duplicar", "Excluir" e estados vazio, carregando e erro
+- [x] T019 [S1] Revisão visual da fatia (imagens em largura de computador e de celular), auditoria de contraste, ajustes; conferir o roteiro 1 e o roteiro 6 do [quickstart.md](quickstart.md)
 
 ## Fatia 2: Escala de 4 semanas
 

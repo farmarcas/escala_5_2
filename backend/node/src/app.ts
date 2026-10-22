@@ -15,6 +15,7 @@ import { simulationsRouter } from './modules/simulations/simulations.routes.js';
 import { adminContactsRouter } from './modules/admin-contacts/admin-contacts.routes.js';
 import { contactsRouter } from './modules/contacts/contacts.routes.js';
 import { storesRouter } from './modules/stores/stores.routes.js';
+import { scalesRouter } from './modules/scales/scales.routes.js';
 import { makeSmtpMailer } from './shared/mailer.js';
 import { AttemptLimiter } from './shared/middlewares/rate-limit.js';
 import { requireAdminKey } from './shared/middlewares/require-admin-key.js';
@@ -69,6 +70,7 @@ export const createApp = (deps: AppDeps = {}) => {
   app.use('/api/v1/auth', authRouter(auth));
   app.use('/api/v1/groups', groupsRouter(auth));
   app.use('/api/v1/stores', storesRouter(requireSession(auth)));
+  app.use('/api/v1/scales', scalesRouter(requireSession(auth)));
   app.use('/api/v1/contact-requests', contactsRouter(requireSession(auth), deps.contactLimiter));
   app.use(
     '/api/v1/admin/contact-requests',

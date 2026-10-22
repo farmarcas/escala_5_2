@@ -10,7 +10,7 @@ export class ApiError extends Error {
   }
 }
 
-type ApiInit = { method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'; body?: unknown };
+type ApiInit = { method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'; body?: unknown };
 
 const FALLBACK_MESSAGE = 'Algo deu errado. Tente de novo em instantes.';
 

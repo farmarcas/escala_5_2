@@ -13,6 +13,15 @@ import { SimulationPage } from './SimulationPage';
 import { StoreEditorPage } from './StoreEditorPage';
 import { StoresPage } from './StoresPage';
 import {
+  ComingSoonTab,
+  NewStoreScreen,
+  StoreDataTab,
+  StoreDiagnosticTab,
+  StoreIndexRedirect,
+  StorePanelLayout,
+  StoresHome,
+} from '@/features/scales';
+import {
   ForgotPasswordPage,
   LoginPage,
   RegisterPage,
@@ -33,6 +42,31 @@ export function AppRoutes() {
         <Route path="/privacidade" element={<PrivacyPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/conta" element={<AccountPage />} />
+          <Route path="/painel" element={<StoresHome />} />
+          <Route path="/painel/lojas/nova" element={<NewStoreScreen />} />
+          <Route path="/painel/lojas/:id" element={<StorePanelLayout />}>
+            <Route index element={<StoreIndexRedirect />} />
+            <Route path="dados" element={<StoreDataTab />} />
+            <Route
+              path="escala"
+              element={
+                <ComingSoonTab
+                  title="Escala de 4 semanas"
+                  description="Em breve: a escala completa por pessoa e por cenário. Por enquanto veja o diagnóstico."
+                />
+              }
+            />
+            <Route path="diagnostico" element={<StoreDiagnosticTab />} />
+            <Route
+              path="regras"
+              element={
+                <ComingSoonTab
+                  title="Regras aplicadas"
+                  description="Em breve: a lista da base legal usada nos cálculos."
+                />
+              }
+            />
+          </Route>
           <Route path="/lojas" element={<StoresPage />} />
           <Route path="/lojas/nova" element={<StoreEditorPage />} />
           <Route path="/simulacao" element={<SimulationPage />} />

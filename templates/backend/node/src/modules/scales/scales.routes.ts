@@ -1,0 +1,33 @@
+import { Router, type RequestHandler } from 'express';
+import { validate } from '../../shared/middlewares/validate.js';
+import { makeScalesController } from './scales.controller.js';
+import { scalesRepository } from './scales.repository.js';
+import {
+  bodyRequestSchema,
+  idRequestSchema,
+  listRequestSchema,
+  updateRequestSchema,
+} from './scales.schemas.js';
+import { makeScalesService, type ScalesRepository } from './scales.service.js';
+
+export const scalesRouter = (
+  requireSession: RequestHandler,
+  repo: ScalesRepository = scalesRepository,
+  today: () => string = () => new Date().toISOString().slice(0, 10),
+) => {
+  const controller = makeScalesController(makeScalesService(repo), today);
+  const router = Router();
+
+  router.use(requireSession);
+  router.get('/defaults', validate(listRequestSchema), controller.defaults);
+  router.post('/preview', validate(bodyRequestSchema), controller.preview);
+  router.get('/stores', validate(listRequestSchema), controller.list);
+  router.post('/stores', validate(bodyRequestSchema), controller.create);
+  router.get('/stores/:id', validate(idRequestSchema), controller.getById);
+  router.put('/stores/:id', validate(updateRequestSchema), controller.update);
+  router.delete('/stores/:id', validate(idRequestSchema), controller.remove);
+  router.post('/stores/:id/duplicate', validate(idRequestSchema), controller.duplicate);
+  router.get('/stores/:id/diagnostic', validate(idRequestSchema), controller.diagnostic);
+
+  return router;
+};

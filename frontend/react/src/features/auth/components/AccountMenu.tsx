@@ -23,8 +23,11 @@ export function AccountMenu() {
   return (
     <div className="flex items-center gap-3 text-sm">
       <span className="hidden opacity-90 sm:inline">{state.group.name}</span>
+      <Link to="/painel" className="font-medium underline underline-offset-2">
+        Painel
+      </Link>
       <Link to="/lojas" className="font-medium underline underline-offset-2">
-        Minhas lojas
+        Calculadora
       </Link>
       <Link to="/simulacoes" className="font-medium underline underline-offset-2">
         Simulações

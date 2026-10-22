@@ -12,5 +12,5 @@ export function HomeRedirect() {
       </p>
     );
   }
-  return <Navigate to={state.status === 'authenticated' ? '/lojas' : '/entrar'} replace />;
+  return <Navigate to={state.status === 'authenticated' ? '/painel' : '/entrar'} replace />;
 }

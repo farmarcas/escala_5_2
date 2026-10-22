@@ -10,7 +10,7 @@ export function Header({ actions }: HeaderProps) {
         <Link to="/" className="text-lg font-bold">
           Farmarcas
           <span className="ml-2 hidden text-sm font-normal opacity-90 sm:inline">
-            Calculadora do fim da escala 6x1
+            Painel de Escalas 5x2
           </span>
         </Link>
         {actions}

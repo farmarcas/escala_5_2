@@ -71,6 +71,9 @@
   --color-at-50: #ffeecd;
   --color-su-500: #588e1a;
   --color-su-50: #f0ffd7;
+  /* Textos de estado sobre su-50 e wa-50, escurecidos para contraste mínimo de 4,5:1 */
+  --color-su-700: #3d6310;
+  --color-wa-500: #a8001d;
 
   /* Tokens semânticos do projeto (o que os componentes usam) */
   --color-background: var(--color-li-00);
