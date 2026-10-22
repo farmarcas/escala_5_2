@@ -18,25 +18,6 @@ enum TaxRegime {
   simples
 }
 
-enum StoreProfile {
-  rua
-  shopping
-  h24 @map("24h")
-}
-
-enum StoreSize {
-  pequena
-  media
-  grande
-}
-
-enum StoreRoleKind {
-  farmaceutico
-  balconista
-  caixa
-  estoquista
-}
-
 enum ContactSource {
   consultor
   pdf
@@ -93,8 +74,6 @@ model Group {
   createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
   users         User[]
-  stores        Store[]
-  simulations   Simulation[]
   scaleStores   ScaleStore[]
 
   @@map("groups")
@@ -116,7 +95,6 @@ model User {
   group             Group?       @relation(fields: [groupId], references: [id], onDelete: Cascade)
   sessions          Session[]
   emailTokens       EmailToken[]
-  simulations       Simulation[]
 
   @@index([groupId])
   @@map("users")
@@ -148,67 +126,6 @@ model EmailToken {
 
   @@index([userId, kind])
   @@map("email_tokens")
-}
-
-// Nome único entre lojas ativas do grupo (índice parcial no SQL da migration).
-// opening_hours: [{ weekday: 0..6, opensAt: "08:00", closesAt: "22:00" | "24:00" }]; dia ausente = fechado.
-model Store {
-  id           String       @id @default(uuid(7)) @db.Uuid
-  groupId      String       @map("group_id") @db.Uuid
-  name         String
-  city         String
-  profile      StoreProfile
-  // Porte informado pelo dono; nulo nas lojas cadastradas antes desta coluna existir.
-  size         StoreSize?
-  openingHours Json         @map("opening_hours")
-  deletedAt    DateTime?    @map("deleted_at") @db.Timestamptz(3)
-  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt    DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
-  group        Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  roles        StoreRole[]
-
-  @@index([groupId, deletedAt])
-  @@map("stores")
-}
-
-model StoreRole {
-  id            String        @id @default(uuid(7)) @db.Uuid
-  storeId       String        @map("store_id") @db.Uuid
-  role          StoreRoleKind
-  // Opcional: sem ele, o quadro atual é a necessidade da função (cobertura constante).
-  minPerShift   Int?          @map("min_per_shift") @db.SmallInt
-  headcount     Int           @db.SmallInt
-  weeklyHours   Decimal       @map("weekly_hours") @db.Decimal(4, 1)
-  monthlySalary Decimal       @map("monthly_salary") @db.Decimal(12, 2)
-  absenceRate   Decimal?      @map("absence_rate") @db.Decimal(4, 3)
-  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
-  store         Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
-
-  @@unique([storeId, role])
-  @@map("store_roles")
-}
-
-// Foto imutável de uma simulação: premissas, lojas, ações e resultado do momento em que foi salva.
-// JSON de propósito: editar loja ou premissa depois NÃO pode mudar uma simulação antiga (FR-018).
-// Nome único entre simulações ativas do grupo (índice parcial no SQL da migration).
-model Simulation {
-  id          String    @id @default(uuid(7)) @db.Uuid
-  groupId     String    @map("group_id") @db.Uuid
-  createdBy   String    @map("created_by") @db.Uuid
-  name        String
-  premises    Json
-  input       Json
-  mitigations Json
-  result      Json
-  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz(3)
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
-  group       Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  author      User      @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-
-  @@index([groupId, createdAt(sort: Desc)])
-  @@map("simulations")
 }
 
 // Pedido de contato / lead de PDF. Não depende de conta. Dados pessoais podem ser anonimizados a pedido

@@ -81,7 +81,7 @@ description: "Tarefas: Painel de Escalas 5x2 (Farmarcas)"
 
 ## Fatia 7: Fechamento
 
-- [x] T038 [S7] (código retirado; a migration `contract` que apaga as tabelas antigas aguarda confirmação, pois remove dados) Retirar o produto antigo: módulos, telas e testes de simulações salvas, comparação, mitigações e impacto por equivalentes; migration `contract` (colunas e tabelas sem uso)
+- [x] T038 [S7] (migration `contract` aplicada com confirmação em 23/10/2026) Retirar o produto antigo: módulos, telas e testes de simulações salvas, comparação, mitigações e impacto por equivalentes; migration `contract` (colunas e tabelas sem uso)
 - [x] T039 [S7] Atualizar README, `contracts/api.md` (nova), specs 001 e 003 marcadas como substituídas; `sync-templates`
 - [x] T040 [S7] Verificação final: lint, tipos, todos os testes, `validar-frontend.sh`, auditoria de contraste e de celular em todas as telas, revisão de segurança (`/security-review`) e `/speckit-analyze`; commit e envio da branch
 
