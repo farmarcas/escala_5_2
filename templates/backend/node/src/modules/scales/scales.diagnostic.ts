@@ -9,7 +9,7 @@ import {
   type PayrollLine,
   type TaxRegime,
 } from './engine/costs.js';
-import { hourlyRate, nightAdditionMonthly, nightMinutes } from './engine/night.js';
+import { hourlyRate, nightMinutes } from './engine/night.js';
 import { PAY, SCENARIOS, SCHEDULE, type ScenarioId } from './engine/rules.js';
 import { analyzeSales, type SalesAnalysis } from './engine/sales.js';
 import { plantaoNightsPerWeek, plantaoShiftTimes } from './engine/plantao.js';
@@ -130,21 +130,30 @@ export function costSettingsOf(
   };
 }
 
+// Pessoas entre as quais o plantão gira no custo de hoje.
+const PLANTAO_ROTATION = 4;
+
 type GroupScenario = {
   need: number;
   roster: Roster;
-  // Médias por pessoa paga (o dono farmacêutico fica de fora).
-  nightMinutesPerWeek: number;
+  // Médias por pessoa paga e por mês (o dono farmacêutico fica de fora).
+  // Horas noturnas reduzidas (22h às 5h, 52 min 30 s por hora) que cada pessoa trabalha.
+  nightReducedHoursPerMonth: number;
   shiftsPerMonth: number;
-  // Horas além da jornada diária nos turnos de plantão e quantidade desses turnos, por mês.
-  plantaoOvertimeHoursPerMonth: number;
+  // Horas além da jornada diária (já com a hora noturna reduzida) e turnos de plantão.
+  overtimeHoursPerMonth: number;
   plantaoShiftsPerMonth: number;
   // Horas trabalhadas em feriado, por mês.
   holidayHoursPerMonth: number;
 };
 
 // Pessoas necessárias: parte da fórmula de dimensionamento e sobe até a escala de 4 semanas fechar de verdade.
-function planGroup(store: ScaleStoreInput, lead: ScaleRoleInput, id: ScenarioId): GroupScenario {
+function planGroup(
+  store: ScaleStoreInput,
+  lead: ScaleRoleInput,
+  id: ScenarioId,
+  today: number,
+): GroupScenario {
   const week = buildWeekHours(store.hours as StoreHoursInput);
   const options = { lunchMinutes: store.rules.lunchMinutes, sundayRule: store.rules.sundayRule };
   const formula = requiredPeople(
@@ -158,9 +167,9 @@ function planGroup(store: ScaleStoreInput, lead: ScaleRoleInput, id: ScenarioId)
   const none = {
     need: 0,
     roster: empty,
-    nightMinutesPerWeek: 0,
+    nightReducedHoursPerMonth: 0,
     shiftsPerMonth: 0,
-    plantaoOvertimeHoursPerMonth: 0,
+    overtimeHoursPerMonth: 0,
     plantaoShiftsPerMonth: 0,
     holidayHoursPerMonth: 0,
   };
@@ -178,57 +187,109 @@ function planGroup(store: ScaleStoreInput, lead: ScaleRoleInput, id: ScenarioId)
     },
     start,
   );
-  const paid = result.people.filter((p) => !p.isOwner);
-  const dailyMinutes = SCENARIOS[id].dailyHours * 60;
-  let night = 0;
+  // Se a loja já tem mais gente que o necessário, os adicionais se espalham por todos (o excedente é reforço).
+  const costed =
+    today > result.count
+      ? rosterWithMinimumPeople(
+          {
+            role: coverageRole(lead),
+            week,
+            scenario: SCENARIOS[id],
+            lunchMinutes: store.rules.lunchMinutes,
+            snackMinutes: store.rules.snackMinutes,
+            sundayRule: store.rules.sundayRule,
+            hasOwner: lead.ownerIsPharmacist,
+            events: eventsFor(store, lead.role),
+          },
+          today,
+        )
+      : result;
+  const paid = costed.people.filter((p) => !p.isOwner);
+  // Na 12x36 o dia normal já é de 12 h: só o que passa disso é hora extra.
+  const dailyHours =
+    lead.scaleType === 'doze_x_trinta_e_seis'
+      ? SCHEDULE.twelveByThirtySix.dailyHours
+      : SCENARIOS[id].dailyHours;
+  let nightReduced = 0;
+  let nightReducedPlantao = 0;
   let shifts = 0;
   let plantaoShifts = 0;
   let overtime = 0;
+  let overtimePlantao = 0;
   let holidayMinutes = 0;
   for (const p of paid) {
     for (const cell of p.days) {
       if (!cell) continue;
       shifts += 1;
-      night += nightMinutes(cell, cell.lunch);
+      const night = nightMinutes(cell, cell.lunch);
+      const reduced = night / PAY.nightHourMinutes;
+      // Horas pagas (a noturna conta menos minutos) acima da jornada do dia viram hora extra.
+      const extra = Math.max(0, (cell.workMinutes - night) / 60 + reduced - dailyHours);
       if (cell.kind === 'plantao') {
         plantaoShifts += 1;
-        overtime += Math.max(0, cell.workMinutes - dailyMinutes) / 60;
-      } else if (cell.holiday) holidayMinutes += cell.workMinutes;
+        nightReducedPlantao += reduced;
+        overtimePlantao += extra;
+      } else {
+        nightReduced += reduced;
+        overtime += extra;
+        if (cell.holiday) holidayMinutes += cell.workMinutes;
+      }
     }
   }
   const n = Math.max(paid.length, 1);
   const perMonth = PAY.weeksPerMonth / SCHEDULE.weeks / n;
+  // Hoje (6x1): o plantão gira entre até 4 pessoas (uma noite a cada 4 semanas cada uma); com menos de 4
+  // pessoas, as noites sem ninguém não entram no custo. Conferido com o painel de referência.
+  const perMonthPlantao =
+    id === '6x1_44' && today > 0
+      ? ((PAY.weeksPerMonth / SCHEDULE.weeks) *
+          (Math.min(today, PLANTAO_ROTATION) / PLANTAO_ROTATION)) /
+        today
+      : perMonth;
   return {
     need: result.count,
     roster: result,
-    nightMinutesPerWeek: night / n / SCHEDULE.weeks,
+    nightReducedHoursPerMonth: nightReduced * perMonth + nightReducedPlantao * perMonthPlantao,
     shiftsPerMonth: shifts * perMonth,
-    plantaoOvertimeHoursPerMonth: overtime * perMonth,
-    plantaoShiftsPerMonth: plantaoShifts * perMonth,
+    overtimeHoursPerMonth: overtime * perMonth + overtimePlantao * perMonthPlantao,
+    plantaoShiftsPerMonth: plantaoShifts * perMonthPlantao,
     holidayHoursPerMonth: (holidayMinutes / 60) * perMonth,
   };
 }
 
 // Adicionais mensais de uma pessoa da função, vindos da escala (noturno e intervalo indenizado na 12x36).
+// A 12x36 trabalha 42 h por semana em média (3,5 dias de 12 h): a hora vale salário ÷ 210.
+const rateWeeklyHours = (role: ScaleRoleInput, scenario: ScenarioId) =>
+  role.scaleType === 'doze_x_trinta_e_seis' ? 42 : SCENARIOS[scenario].weeklyHours;
+
+const daysPerWeekOf = (role: ScaleRoleInput, scenario: ScenarioId) =>
+  role.scaleType === 'doze_x_trinta_e_seis'
+    ? SCHEDULE.twelveByThirtySix.daysPerWeek
+    : SCENARIOS[scenario].daysPerWeek;
+
 function additionsFor(
   store: ScaleStoreInput,
   role: ScaleRoleInput,
   scenario: ScenarioId,
   plan: GroupScenario,
 ): Additions {
-  const rate = hourlyRate(role.monthlySalary, SCENARIOS[scenario].weeklyHours);
+  const rate = hourlyRate(role.monthlySalary, rateWeeklyHours(role, scenario));
   const additions: Additions = {
-    night: nightAdditionMonthly(rate, plan.nightMinutesPerWeek),
-    overtime: rate * (1 + PAY.overtimePremium) * plan.plantaoOvertimeHoursPerMonth,
+    // Adicional de 20% sobre as horas noturnas reduzidas; as horas a mais da hora reduzida entram como extra.
+    night: rate * PAY.nightAdditional * plan.nightReducedHoursPerMonth,
+    overtime: rate * (1 + PAY.overtimePremium) * plan.overtimeHoursPerMonth,
     indemnifiedBreak: 0,
   };
   if (role.scaleType === 'doze_x_trinta_e_seis' && store.rules.indemnifyBreak) {
-    additions.indemnifiedBreak = rate * PAY.indemnifiedBreakPremium * plan.shiftsPerMonth;
+    // 12x36: a hora de intervalo não gozada entra como hora extra a 150% (conferido com a referência).
+    additions.overtime =
+      (additions.overtime ?? 0) + rate * (1 + PAY.overtimePremium) * plan.shiftsPerMonth;
   }
   if (store.plantao.indemnifyBreak) {
     additions.indemnifiedBreak =
       (additions.indemnifiedBreak ?? 0) +
-      rate * PAY.indemnifiedBreakPremium * plan.plantaoShiftsPerMonth;
+      // Intervalo de 1 h do plantão pago a 150% da hora normal (conferido com a referência).
+      rate * (1 + PAY.indemnifiedBreakPremium) * plan.plantaoShiftsPerMonth;
   }
   if (store.holidays.compensation === 'dobro') {
     additions.holidayDouble = rate * plan.holidayHoursPerMonth;
@@ -236,28 +297,31 @@ function additionsFor(
   return additions;
 }
 
-// Plantonista intermitente: paga só as horas convocadas (CLT art. 452-A), com adicional noturno.
+// Plantonista intermitente (CLT art. 452-A): paga só as horas convocadas, com adicional noturno e a hora
+// noturna reduzida; só existe na nova escala (o painel de referência não cobra isso de hoje).
 function intermittentLines(store: ScaleStoreInput, scenario: ScenarioId): PayrollLine[] {
   const { plantao } = store;
   if (plantao.type === 'none' || plantao.cover !== 'intermittent') return [];
   const times = plantaoShiftTimes(plantao);
-  const nightsPerWeek = plantaoNightsPerWeek(plantao);
+  const breakHole = plantao.indemnifyBreak
+    ? null
+    : { start: times.start + 240, end: times.start + 300 };
+  const night = nightMinutes({ start: times.start, end: times.end }, breakHole);
+  const reducedNight = night / PAY.nightHourMinutes;
+  // Horas pagas por noite: dia + noite reduzida + 20% de adicional noturno sobre a noite reduzida.
+  const paidHours =
+    (times.workMinutes - night) / 60 + reducedNight + PAY.nightAdditional * reducedNight;
+  const nightsPerMonth = plantaoNightsPerWeek(plantao) * PAY.weeksPerMonth;
   const lines: PayrollLine[] = [];
   for (const role of store.roles) {
     const key = plantaoRoleOf(role.role);
     if (!key || !role.enabled || plantao.people[key] <= 0) continue;
     const rate = hourlyRate(role.monthlySalary, SCENARIOS[scenario].weeklyHours);
-    const persons = plantao.people[key];
-    const hoursPerMonth = (times.workMinutes / 60) * nightsPerWeek * PAY.weeksPerMonth;
-    const nightMin = nightMinutes(
-      { start: times.start, end: times.end },
-      plantao.indemnifyBreak ? null : { start: times.start + 240, end: times.start + 300 },
-    );
     lines.push({
-      salary: rate * hoursPerMonth,
-      people: persons,
-      daysPerWeek: nightsPerWeek,
-      additions: { night: nightAdditionMonthly(rate, nightMin * nightsPerWeek) },
+      salary: rate * paidHours * nightsPerMonth,
+      people: plantao.people[key],
+      daysPerWeek: 0,
+      intermittent: true,
     });
   }
   return lines;
@@ -320,10 +384,11 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
     if (members.length === 0) continue;
     // A cobertura da função vem do primeiro membro com mínimo no salão (gerente e subgerente dividem o posto).
     const lead = members.find((r) => r.minInHall > 0) ?? members[0]!;
+    const todayHeadcount = members.reduce((n, r) => n + r.headcount, 0);
     const plans = {} as Record<ScenarioId, GroupScenario>;
     const need = {} as Record<ScenarioId, number>;
     for (const id of Object.keys(SCENARIOS) as ScenarioId[]) {
-      plans[id] = planGroup(store, lead, id);
+      plans[id] = planGroup(store, lead, id, todayHeadcount);
       need[id] = plans[id].need;
     }
     for (const id of NEW_SCENARIOS) allPlans[id].push(plans[id]);
@@ -342,7 +407,7 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
         salary: r.monthlySalary,
         people: r.headcount,
         motorcycle: r.motorcycle,
-        daysPerWeek: SCENARIOS['6x1_44'].daysPerWeek,
+        daysPerWeek: daysPerWeekOf(r, '6x1_44'),
         additions: additionsFor(store, r, '6x1_44', plans['6x1_44']),
       });
     }
@@ -353,16 +418,17 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
       reinforcement[id] = Math.max(0, today - need[id]);
       const days = SCENARIOS[id].daysPerWeek;
       for (const r of members) {
+        const memberDays = daysPerWeekOf(r, id);
         const additions = additionsFor(store, r, id, plans[id]);
         nextLines[id].push({
           salary: r.monthlySalary,
           people: r.headcount,
           motorcycle: r.motorcycle,
-          daysPerWeek: days,
+          daysPerWeek: memberDays,
           additions,
         });
         const c = personCost(
-          { salary: r.monthlySalary, motorcycle: r.motorcycle, daysPerWeek: days, additions },
+          { salary: r.monthlySalary, motorcycle: r.motorcycle, daysPerWeek: memberDays, additions },
           settings,
         );
         perPerson[id].push({
@@ -401,7 +467,6 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
   }
 
   const sum = (f: (row: DiagnosticRow) => number) => rows.reduce((n, row) => n + f(row), 0);
-  todayLines.push(...intermittentLines(store, '6x1_44'));
   for (const id of NEW_SCENARIOS) nextLines[id].push(...intermittentLines(store, id));
   const todayPayroll = payroll(todayLines, settings);
   const scenarios = {} as Diagnostic['payroll']['scenarios'];

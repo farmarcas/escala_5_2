@@ -76,7 +76,7 @@ describe('diagnose', () => {
     expect(night).toBeGreaterThan(0);
   });
 
-  it('intervalo indenizado só existe para função em 12x36 e com a regra ligada', () => {
+  it('a hora de intervalo da 12x36 vira hora extra (150%), só com a regra ligada', () => {
     const base = { ...defaultStore('2026-12-14'), name: 'Centro', city: 'Varginha', state: 'MG' };
     const twelve = {
       ...base,
@@ -84,12 +84,10 @@ describe('diagnose', () => {
         r.role === 'caixa' ? { ...r, scaleType: 'doze_x_trinta_e_seis' as const } : r,
       ),
     };
-    expect(diagnose(base).payroll.scenarios['5x2_42'].components.indemnifiedBreak).toBe(0);
-    expect(
-      diagnose(twelve).payroll.scenarios['5x2_42'].components.indemnifiedBreak,
-    ).toBeGreaterThan(0);
+    expect(diagnose(base).payroll.scenarios['5x2_42'].components.overtime).toBe(0);
+    expect(diagnose(twelve).payroll.scenarios['5x2_42'].components.overtime).toBeGreaterThan(0);
     const off = { ...twelve, rules: { ...twelve.rules, indemnifyBreak: false } };
-    expect(diagnose(off).payroll.scenarios['5x2_42'].components.indemnifiedBreak).toBe(0);
+    expect(diagnose(off).payroll.scenarios['5x2_42'].components.overtime).toBe(0);
   });
 
   it('o custo por colaborador soma as partes', () => {

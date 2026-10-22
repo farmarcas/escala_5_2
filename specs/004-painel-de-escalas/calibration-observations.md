@@ -58,9 +58,15 @@ Depois de ler a configuração real da loja de exemplo da referência (gerência
 
 **Loja Centro sem plantão (Simples)**: **igual à referência** em tudo — pessoas por função (6x1 e 5x2 · 42h), folha por função, folha de hoje (R$ 54.710 × R$ 54.705), folha da nova escala (R$ 103.360 × R$ 103.360) e 13 contratações.
 
-**Loja Centro completa (plantão mensal, Simples)**: farmacêutico 5×5, gerência 3×3, caixa 4×4, perfumista, serviços gerais e entregador 3×3, balconista 9×8 (+1 na 5x2 e −1 na 6x1). Folha de hoje R$ 55.685 × R$ 56.241 (−1,0%), nova R$ 118.227 × R$ 115.628 (+2,2%), 16 contratações × 15. Em Presumido/Real, a folha fica a menos de 3% do PDF (R$ 68.701 e R$ 141.455).
-Causas das diferenças que sobram: (1) o gerador de escala não acha arranjo de 8 balconistas com plantão e folgas compensatórias dos feriados (a referência acha); (2) o custo do plantão (adicional noturno, horas extras, intervalo indenizado e DSR) é calculado por outra conta na referência: no total da loja a diferença é de cerca de 1–2%.
+**Loja Centro completa (plantão mensal, Simples)**: farmacêutico 5×5, gerência 3×3, caixa 4×4, perfumista, serviços gerais e entregador 3×3, balconista 9×8 (+1 na 5x2) e 8×9 (−1 na 6x1). Folha de hoje R$ 56.386 × R$ 56.241 (+0,3%), nova R$ 118.771 × R$ 115.628 (+2,7%), 16 contratações × 15. Em Presumido/Real, a folha fica a menos de 3% do PDF (R$ 68.701 e R$ 141.455).
+Causa da diferença que sobra: com plantão e folgas compensatórias dos feriados o gerador de escala não acha arranjo de 8 balconistas (fica um domingo sem cobrir; a referência acha). É conservador: pede 1 pessoa a mais.
+
+**Custo do plantão (decifrado e igual à referência na nova escala)**, por noite de 22h às 7h com intervalo indenizado, por pessoa: adicional noturno = 20% × 8 h noturnas reduzidas; horas extras = (10 h pagas com a hora reduzida − jornada do dia) × 150%; intervalo = 1 h a 150%; DSR = (noturno + extras) ÷ 6. Noites por mês = noites da escala de 4 semanas × 4,34 ÷ 4 (semanal 4,34; mensal 7,6). Resultados conferidos: plantão semanal (farmacêutico e balconista) nova 237/355/99/222 × 236/355/99/222 nossos; só farmacêutico 172/258/72/161 idênticos; mensal nova 414/621/173/388 × 414/621/172/388. Em "hoje" (6x1) o plantão gira entre até 4 pessoas (uma noite a cada 4 semanas cada): com 2 farmacêuticos paga 50%, com 3 paga 75%, com 4 ou mais paga 100% (exato no semanal; no mensal o nosso fica 4% acima).
+
+**Plantonista intermitente**: não muda a equipe; custa só na nova escala (hoje não tem). Por noite paga (10 h reduzidas + 20% × 8 h noturnas = 11,6 h) × hora, com 13º, férias e FGTS, sem multa do FGTS, vale-transporte nem benefícios. Mensal: R$ 107.229 × R$ 107.234 (referência).
+
+**12x36 no caixa**: a equipe não muda (4×4). A hora de intervalo vira "horas extras" a 150% com a hora = salário ÷ 210 (42 h por semana), 3,5 dias por semana no vale-transporte. Caixa R$ 6.243/12.604 × 6.289/12.578; total R$ 55.092/104.398 × 55.134/104.371.
+
+**Feriados fechados**: 5x2 e totais idênticos (R$ 103.360); 6x1 fecha em 4, 3, 4, 2, 2, 2 como a referência, e a balconista dá 7 × 8.
 
 **Vendas e CMV**: as fórmulas batem com a referência (vendas de R$ 1,5 mi, CMV 70%, meta 12%): venda mínima para pagar mercadoria e folha R$ 344.533, venda pela meta R$ 861.333, folha sobre a venda 6,9% e sobra de R$ 23,11 a cada R$ 100.
-
-**Ainda sem conferir com a referência**: 12x36, feriados fechados, plantão semanal e intermitente, e o custo do plantão por componente.

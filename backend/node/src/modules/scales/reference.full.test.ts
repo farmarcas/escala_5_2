@@ -95,3 +95,110 @@ describe('mesma loja sem plantão (Simples): igual à referência', () => {
     expect(d.totals.hire['5x2_42']).toBe(REFERENCE_SEM_PLANTAO_TOTALS.hire42);
   });
 });
+
+// Casos medidos no painel de referência em 23/10/2026, sempre sobre a mesma loja (Simples).
+describe('plantão, intermitente, 12x36 e feriados fechados (medidos na referência)', () => {
+  const base = centroFullStore();
+  const sem = { ...base, plantao: { ...base.plantao, type: 'none' as const } };
+  const comp = (d: ReturnType<typeof diagnose>, k: 'today' | '5x2_42') =>
+    k === 'today' ? d.payroll.today.components : d.payroll.scenarios['5x2_42'].components;
+  // [adicional noturno, horas extras, DSR, intervalo indenizado]
+  const parts = (c: ReturnType<typeof comp>) => [c.night, c.overtime, c.dsr, c.indemnifiedBreak];
+  const closeAll = (got: number[], want: number[], pct = 0.03) =>
+    got.forEach((v, i) => expect(near(v, want[i]!, pct), `${v} × ${want[i]}`).toBe(true));
+
+  it('plantão semanal (1 farmacêutico e 1 balconista): componentes de hoje e da nova escala', () => {
+    const d = diagnose({ ...base, plantao: { ...base.plantao, type: 'weekly' } });
+    closeAll(parts(comp(d, 'today')), [144, 359, 84, 135]);
+    closeAll(parts(comp(d, '5x2_42')), [237, 355, 99, 222]);
+  });
+
+  it('plantão semanal só com farmacêutico: componentes de hoje e da nova escala', () => {
+    const d = diagnose({
+      ...base,
+      plantao: {
+        ...base.plantao,
+        type: 'weekly',
+        people: { farmaceutico: 1, balconista: 0, caixa: 0 },
+      },
+    });
+    closeAll(parts(comp(d, 'today')), [82, 205, 48, 77]);
+    closeAll(parts(comp(d, '5x2_42')), [172, 258, 72, 161]);
+  });
+
+  it('o custo de hoje do plantão cresce com a equipe até 4 pessoas e para aí', () => {
+    const withFarm = (n: number) => {
+      const s = {
+        ...base,
+        plantao: {
+          ...base.plantao,
+          type: 'weekly' as const,
+          people: { farmaceutico: 1, balconista: 0, caixa: 0 },
+        },
+        roles: base.roles.map((r) => (r.role === 'farmaceutico' ? { ...r, headcount: n } : r)),
+      };
+      return comp(diagnose(s), 'today').night;
+    };
+    closeAll([withFarm(2), withFarm(3), withFarm(5)], [82, 123, 164]);
+  });
+
+  it('plantão mensal: componentes da nova escala iguais e de hoje a até 5%', () => {
+    const d = diagnose(base);
+    closeAll(parts(comp(d, '5x2_42')), [414, 621, 173, 388], 0.01);
+    closeAll(parts(comp(d, 'today')), [241, 603, 141, 226], 0.05);
+  });
+
+  it('plantonista intermitente: equipe igual à da loja sem plantão e custo extra só na nova escala', () => {
+    const d = diagnose({
+      ...base,
+      plantao: { ...base.plantao, type: 'monthly', cover: 'intermittent' },
+    });
+    expect(d.totals.hire['5x2_42']).toBe(13);
+    expect(near(d.payroll.today.total, 54705, 0.002)).toBe(true);
+    expect(near(d.payroll.scenarios['5x2_42'].total, 107234, 0.002)).toBe(true);
+    expect(comp(d, '5x2_42').overtime).toBe(0);
+    expect(comp(d, '5x2_42').night).toBe(0);
+  });
+
+  it('12x36 no caixa: folha por função e total a até 1% e horas extras da hora de intervalo', () => {
+    const d = diagnose({
+      ...sem,
+      roles: sem.roles.map((r) =>
+        r.role === 'caixa' ? { ...r, scaleType: 'doze_x_trinta_e_seis' as const } : r,
+      ),
+    });
+    const caixa = d.rows.find((r) => r.key === 'caixa')!;
+    expect(caixa.need['5x2_42']).toBe(4);
+    expect(near(caixa.cost.today, 6289, 0.01)).toBe(true);
+    expect(near(caixa.cost['5x2_42'], 12578, 0.01)).toBe(true);
+    expect(near(d.payroll.today.total, 55134, 0.01)).toBe(true);
+    expect(near(d.payroll.scenarios['5x2_42'].total, 104371, 0.01)).toBe(true);
+    expect(comp(d, '5x2_42').overtime).toBeGreaterThan(0);
+  });
+
+  it('feriados fechados: nenhuma folga compensatória e necessário igual ao da referência', () => {
+    const d = diagnose({ ...sem, holidays: { ...sem.holidays, openOnHolidays: false } });
+    const need = (key: string, id: '6x1_44' | '5x2_42') =>
+      d.rows.find((r) => r.key === key)!.need[id];
+    // Referência 6x1: 4, 3, 8, 4, 2, 2, 2. A balconista fica 1 abaixo (7), diferença conhecida.
+    expect(
+      ['farmaceutico', 'gerencia', 'caixa', 'perfumista', 'servicos_gerais', 'entregador'].map(
+        (k) => need(k, '6x1_44'),
+      ),
+    ).toEqual([4, 3, 4, 2, 2, 2]);
+    expect(need('balconista', '6x1_44')).toBe(7);
+    expect(
+      [
+        'farmaceutico',
+        'gerencia',
+        'balconista',
+        'caixa',
+        'perfumista',
+        'servicos_gerais',
+        'entregador',
+      ].map((k) => need(k, '5x2_42')),
+    ).toEqual([4, 3, 7, 4, 3, 3, 3]);
+    expect(d.holidays['5x2_42'].compensatoryDays).toBe(0);
+    expect(near(d.payroll.scenarios['5x2_42'].total, 103360, 0.002)).toBe(true);
+  });
+});

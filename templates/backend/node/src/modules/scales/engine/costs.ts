@@ -37,6 +37,8 @@ export type PersonCostInput = {
   additions?: Additions;
   motorcycle?: boolean;
   daysPerWeek: number;
+  // Plantonista intermitente: paga só as horas convocadas, sem multa do FGTS, vale-transporte nem benefícios.
+  intermittent?: boolean;
 };
 
 export type PersonCost = {
@@ -78,19 +80,21 @@ export function personCost(input: PersonCostInput, settings: CostSettings): Pers
   const provisionsAmount = thirteenth + vacation;
   const chargeBase = base + provisionsAmount;
   const fgts = chargeBase * CHARGES.fgts;
-  const fgtsFine = settings.provisions ? fgts * CHARGES.fgtsFine : 0;
+  const fgtsFine = settings.provisions && !input.intermittent ? fgts * CHARGES.fgtsFine : 0;
   const inssRate =
     settings.taxRegime === 'simples'
       ? 0
       : CHARGES.inssEmployer + settings.rat + settings.thirdParty;
   const inss = chargeBase * inssRate;
   const daysPerMonth = input.daysPerWeek * PAY.weeksPerMonth;
-  const transportEmployer = Math.max(
-    0,
-    daysPerMonth * settings.transport.tripsPerDay * settings.transport.fare -
-      CHARGES.transportEmployeeShare * input.salary,
-  );
-  const benefits = settings.benefits + transportEmployer;
+  const transportEmployer = input.intermittent
+    ? 0
+    : Math.max(
+        0,
+        daysPerMonth * settings.transport.tripsPerDay * settings.transport.fare -
+          CHARGES.transportEmployeeShare * input.salary,
+      );
+  const benefits = input.intermittent ? 0 : settings.benefits + transportEmployer;
   const direct = base;
   const indirect = provisionsAmount + fgts + fgtsFine + inss + benefits;
   return {
@@ -109,7 +113,7 @@ export function personCost(input: PersonCostInput, settings: CostSettings): Pers
     fgtsFine,
     inss,
     transportEmployer,
-    otherBenefits: settings.benefits,
+    otherBenefits: input.intermittent ? 0 : settings.benefits,
     benefits,
     direct,
     indirect,
