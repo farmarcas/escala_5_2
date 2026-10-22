@@ -109,7 +109,7 @@ function DeleteAccount() {
     <section className="bg-background border-border flex flex-col gap-3 rounded-lg border p-5">
       <h2 className="text-lg font-semibold">Excluir minha conta</h2>
       <p className="text-muted-foreground text-sm">
-        Apaga a sua conta e todos os dados do grupo: lojas, equipes e simulações salvas. Não dá para
+        Apaga a sua conta e todos os dados do grupo: lojas, equipes e dados do painel. Não dá para
         desfazer. Se você já pediu contato a um consultor, esse pedido fica com a Farmarcas; para
         removê-lo, peça a eliminação dos dados ao consultor.
       </p>

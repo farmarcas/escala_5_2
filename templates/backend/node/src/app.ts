@@ -6,15 +6,12 @@ import { errorHandler } from './shared/middlewares/error-handler.js';
 import { requestId } from './shared/middlewares/request-id.js';
 import { sameOrigin } from './shared/middlewares/same-origin.js';
 import { env } from './config/env.js';
-import { premisesRouter } from './modules/premises/premises.routes.js';
 import { authRouter, groupsRouter } from './modules/auth/auth.routes.js';
 import { authRepository } from './modules/auth/auth.repository.js';
 import { makeAuthService } from './modules/auth/auth.service.js';
 import type { Mailer } from './modules/auth/auth.types.js';
-import { simulationsRouter } from './modules/simulations/simulations.routes.js';
 import { adminContactsRouter } from './modules/admin-contacts/admin-contacts.routes.js';
 import { contactsRouter } from './modules/contacts/contacts.routes.js';
-import { storesRouter } from './modules/stores/stores.routes.js';
 import { scalesRouter } from './modules/scales/scales.routes.js';
 import { makeSmtpMailer } from './shared/mailer.js';
 import { AttemptLimiter } from './shared/middlewares/rate-limit.js';
@@ -66,10 +63,8 @@ export const createApp = (deps: AppDeps = {}) => {
     limiter: deps.loginLimiter ?? new AttemptLimiter({ max: 5, windowMs: 15 * 60_000 }),
     appBaseUrl: env.APP_BASE_URL,
   });
-  app.use('/api/v1/premises', requireSession(auth), premisesRouter());
   app.use('/api/v1/auth', authRouter(auth));
   app.use('/api/v1/groups', groupsRouter(auth));
-  app.use('/api/v1/stores', storesRouter(requireSession(auth)));
   app.use('/api/v1/scales', scalesRouter(requireSession(auth)));
   app.use('/api/v1/contact-requests', contactsRouter(requireSession(auth), deps.contactLimiter));
   app.use(
@@ -78,7 +73,6 @@ export const createApp = (deps: AppDeps = {}) => {
       requireAdminKey('adminApiKey' in deps ? deps.adminApiKey : env.ADMIN_API_KEY),
     ),
   );
-  app.use('/api/v1/simulations', simulationsRouter(requireSession(auth)));
 
   app.use((_req, res) => {
     res.status(404).json({

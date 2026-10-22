@@ -1,6 +1,6 @@
 # Feature Specification: Impacto a partir do quadro atual da loja
 
-**Created**: 2026-10-22 | **Status**: Rascunho (aguardando aprovação) | **Substitui parcialmente**: spec 001 (modo detalhado: cadastro da loja e cálculo; remove o modo rápido público e o PDF com captação de contato)
+**Created**: 2026-10-22 | **Status**: SUBSTITUÍDA pela [spec 004 (Painel de Escalas 5x2)](../004-painel-de-escalas/spec.md); o código desta versão foi retirado | **Substitui parcialmente**: spec 001 (modo detalhado: cadastro da loja e cálculo; remove o modo rápido público e o PDF com captação de contato)
 
 ## Contexto
 O dono da loja já tem os colaboradores. O que ele quer saber é **quanto custa passar para a escala 5x2 mantendo a loja funcionando como hoje**. Hoje o formulário exige "mínimo por turno" (quantas pessoas precisam estar juntas na loja), um dado que o dono não costuma ter à mão, e quando o quadro tem folga o resultado dá R$ 0 sem explicar.

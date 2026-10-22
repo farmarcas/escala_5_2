@@ -23,7 +23,7 @@ export function LoginForm() {
     event.preventDefault();
     setShowErrors(true);
     if (Object.keys(validateLogin(values)).length > 0) return;
-    if (await submit(values)) navigate('/lojas');
+    if (await submit(values)) navigate('/painel');
   };
 
   return (

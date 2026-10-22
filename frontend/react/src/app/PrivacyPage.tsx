@@ -8,16 +8,17 @@ export function PrivacyPage() {
         Texto provisório, em revisão pelo jurídico da Farmarcas.
       </p>
       <p>
-        Coletamos apenas os dados necessários para a calculadora: nome, e-mail, empresa, telefone e
-        as informações das lojas que você cadastra. Usamos esses dados para fazer as simulações e,
-        se você pedir, para um consultor da Farmarcas entrar em contato.
+        Coletamos apenas os dados necessários para o Painel de Escalas: nome, e-mail, empresa,
+        telefone e as informações das lojas que você cadastra (equipe, salários, horários, plantão e
+        vendas). Usamos esses dados para calcular as escalas e os custos e, se você pedir, para um
+        consultor da Farmarcas entrar em contato.
       </p>
       <p>
         Você pode pedir a exclusão da sua conta e dos dados do seu grupo a qualquer momento. Não
         usamos seus dados para outra finalidade sem avisar antes.
       </p>
       <Link to="/" className="text-primary-strong font-medium underline">
-        Voltar para a calculadora
+        Voltar para o painel
       </Link>
     </article>
   );

@@ -96,7 +96,7 @@ export function RegisterForm() {
         <div className="flex flex-col gap-1">
           <Checkbox
             label="Li e aceito a política de privacidade"
-            description="Usamos seus dados só para a calculadora e o contato da Farmarcas."
+            description="Usamos seus dados só para o painel e o contato da Farmarcas."
             checked={values.acceptPrivacy}
             onChange={(event) => set('acceptPrivacy', event.target.checked)}
           />

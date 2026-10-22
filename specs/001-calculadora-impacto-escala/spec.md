@@ -6,7 +6,7 @@
 
 **Updated**: 2026-10-22 (inclui modo detalhado por loja, login e simulações salvas)
 
-**Status**: Draft
+**Status**: SUBSTITUÍDA pela [spec 004 (Painel de Escalas 5x2)](../004-painel-de-escalas/spec.md); o código desta versão foi retirado
 
 **Input**: User description: "Construir para a Farmarcas uma calculadora de impacto do fim da escala 6x1, inspirada na da Peers. Dois modos: rápido e público para o dono do grupo; detalhado por loja, com login e simulações salvas, para dar autonomia ao gestor. Inclui captura de contato e relatório em PDF." Análise da referência em [referencia-peers.md](referencia-peers.md).
 

@@ -5,14 +5,6 @@ import { HomeRedirect } from './HomeRedirect';
 import { PrivacyPage } from './PrivacyPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import {
-  CompareSimulationsPage,
-  SavedSimulationPage,
-  SavedSimulationsPage,
-} from './SavedSimulationsPages';
-import { SimulationPage } from './SimulationPage';
-import { StoreEditorPage } from './StoreEditorPage';
-import { StoresPage } from './StoresPage';
-import {
   NewStoreScreen,
   RulesTab,
   StoreDataTab,
@@ -52,13 +44,6 @@ export function AppRoutes() {
             <Route path="diagnostico" element={<StoreDiagnosticTab />} />
             <Route path="regras" element={<RulesTab />} />
           </Route>
-          <Route path="/lojas" element={<StoresPage />} />
-          <Route path="/lojas/nova" element={<StoreEditorPage />} />
-          <Route path="/simulacao" element={<SimulationPage />} />
-          <Route path="/simulacoes" element={<SavedSimulationsPage />} />
-          <Route path="/simulacoes/comparar" element={<CompareSimulationsPage />} />
-          <Route path="/simulacoes/:id" element={<SavedSimulationPage />} />
-          <Route path="/lojas/:id" element={<StoreEditorPage />} />
         </Route>
       </Route>
     </Routes>

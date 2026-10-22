@@ -26,12 +26,6 @@ export function AccountMenu() {
       <Link to="/painel" className="font-medium underline underline-offset-2">
         Painel
       </Link>
-      <Link to="/lojas" className="font-medium underline underline-offset-2">
-        Calculadora
-      </Link>
-      <Link to="/simulacoes" className="font-medium underline underline-offset-2">
-        Simulações
-      </Link>
       <Link to="/conta" className="font-medium underline underline-offset-2">
         Conta
       </Link>
