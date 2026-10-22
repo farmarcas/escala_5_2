@@ -50,6 +50,20 @@ describe('scales routes', () => {
     expect(diag.status).toBe(200);
     expect(diag.body.diagnostic.totals.hire['5x2_42']).toBeGreaterThan(0);
 
+    const started = Date.now();
+    const roster = await agent.get(`/api/v1/scales/stores/${id}/roster?scenario=5x2_42`);
+    expect(roster.status).toBe(200);
+    expect(Date.now() - started).toBeLessThan(2000);
+    expect(roster.body.roster.dates).toHaveLength(28);
+    const balconista = roster.body.roster.groups.find(
+      (g: { key: string }) => g.key === 'balconista',
+    );
+    expect(balconista.covered).toBe(true);
+    expect(balconista.people.some((p: { tags: string[] }) => p.tags.includes('contratar'))).toBe(
+      true,
+    );
+    expect((await agent.get(`/api/v1/scales/stores/${id}/roster?scenario=7x0`)).status).toBe(400);
+
     expect((await agent.delete(`/api/v1/scales/stores/${id}`)).status).toBe(204);
     expect((await agent.get(`/api/v1/scales/stores/${id}`)).status).toBe(404);
   });
@@ -75,6 +89,7 @@ describe('scales routes', () => {
     expect((await b.agent.get(`/api/v1/scales/stores/${id}`)).status).toBe(404);
     expect((await b.agent.delete(`/api/v1/scales/stores/${id}`)).status).toBe(404);
     expect((await b.agent.get(`/api/v1/scales/stores/${id}/diagnostic`)).status).toBe(404);
+    expect((await b.agent.get(`/api/v1/scales/stores/${id}/roster`)).status).toBe(404);
     expect((await b.agent.get('/api/v1/scales/stores')).body.data).toEqual([]);
   });
 

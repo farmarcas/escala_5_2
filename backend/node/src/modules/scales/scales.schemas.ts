@@ -171,3 +171,9 @@ export const updateRequestSchema = z.object({
   params: idParams,
   query: emptyObject,
 });
+
+export const rosterRequestSchema = z.object({
+  body: emptyObject,
+  params: idParams,
+  query: z.object({ scenario: z.enum(['6x1_44', '5x2_42', '5x2_40']).default('5x2_42') }).strict(),
+});

@@ -4,7 +4,12 @@ import { getPrincipal } from '../../shared/middlewares/require-session.js';
 import { readValidated } from '../../shared/middlewares/validate.js';
 import { addDays, mondayOf } from './engine/time.js';
 import { defaultStore } from './scales.defaults.js';
-import type { bodyRequestSchema, idRequestSchema, updateRequestSchema } from './scales.schemas.js';
+import type {
+  bodyRequestSchema,
+  idRequestSchema,
+  rosterRequestSchema,
+  updateRequestSchema,
+} from './scales.schemas.js';
 import type { ScalesService } from './scales.service.js';
 
 export const makeScalesController = (service: ScalesService, today: () => string) => ({
@@ -47,6 +52,13 @@ export const makeScalesController = (service: ScalesService, today: () => string
   preview(_req: Request, res: Response) {
     const { body } = readValidated<z.infer<typeof bodyRequestSchema>>(res);
     res.json({ diagnostic: service.preview(body) });
+  },
+
+  async roster(_req: Request, res: Response) {
+    const { params, query } = readValidated<z.infer<typeof rosterRequestSchema>>(res);
+    res.json({
+      roster: await service.roster(getPrincipal(res).groupId, params.id, query.scenario),
+    });
   },
 
   async diagnostic(_req: Request, res: Response) {

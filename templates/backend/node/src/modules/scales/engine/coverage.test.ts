@@ -23,6 +23,8 @@ describe('coverage', () => {
   it('janela de 10 h dá 2 turnos e janela de 6 h dá 1 (sem almoço)', () => {
     expect(shiftsPerPost(10 * 60, shift42)).toBe(2);
     expect(shiftsPerPost(6 * 60, shift42)).toBe(1);
+    // 7 h pedem almoço: um turno só deixaria o salão descoberto.
+    expect(shiftsPerPost(7 * 60, shift42)).toBe(2);
     expect(shiftsPerPost(0, shift42)).toBe(0);
   });
 

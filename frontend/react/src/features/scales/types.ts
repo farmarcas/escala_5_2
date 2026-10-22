@@ -126,3 +126,38 @@ export const SCENARIO_LABEL: Record<ScenarioKey, string> = {
   '5x2_42': '5x2 · 42h',
   '5x2_40': '5x2 · 40h',
 };
+
+export type ScenarioId = '6x1_44' | ScenarioKey;
+
+export const ALL_SCENARIO_LABEL: Record<ScenarioId, string> = {
+  '6x1_44': '6x1 · 44h',
+  ...SCENARIO_LABEL,
+};
+
+export type ShiftKind = 'abertura' | 'meio' | 'fechamento' | 'unico';
+
+export type RosterCell = {
+  start: string;
+  end: string;
+  lunch: { start: string; end: string } | null;
+  snack: { start: string; end: string } | null;
+  kind: ShiftKind;
+  workMinutes: number;
+};
+
+export type RosterPerson = {
+  id: string;
+  label: string;
+  tags: ('contratar' | 'reforco' | 'dono')[];
+  days: (RosterCell | null)[];
+  weekMinutes: number[];
+};
+
+export type RosterGroup = { key: string; label: string; covered: boolean; people: RosterPerson[] };
+
+export type RosterView = {
+  scenario: ScenarioId;
+  startDate: string;
+  dates: string[];
+  groups: RosterGroup[];
+};

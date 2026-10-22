@@ -1,6 +1,7 @@
 import { buildWeekHours, type StoreHoursInput } from './engine/coverage.js';
 import { comparePayroll, payroll, type CostSettings, type PayrollLine } from './engine/costs.js';
 import { SCENARIOS, type ScenarioId } from './engine/rules.js';
+import { rosterWithMinimumPeople } from './engine/roster.js';
 import { requiredPeople } from './engine/staffing.js';
 import type { ScaleRoleInput, ScaleStoreInput } from './scales.schemas.js';
 
@@ -66,9 +67,28 @@ export function costSettingsOf(store: ScaleStoreInput): CostSettings {
   };
 }
 
-export function diagnose(store: ScaleStoreInput): Diagnostic {
+// Pessoas necessárias: parte da fórmula de dimensionamento e sobe até a escala de 4 semanas fechar de verdade.
+export function neededPeople(store: ScaleStoreInput, lead: ScaleRoleInput, id: ScenarioId): number {
   const week = buildWeekHours(store.hours as StoreHoursInput);
   const options = { lunchMinutes: store.rules.lunchMinutes, sundayRule: store.rules.sundayRule };
+  const formula = requiredPeople({ ...lead, extraPostsPerWeek: 0 }, week, SCENARIOS[id], options);
+  if (!formula.ok) return 0;
+  if (formula.people === 0) return 0;
+  return rosterWithMinimumPeople(
+    {
+      role: lead,
+      week,
+      scenario: SCENARIOS[id],
+      lunchMinutes: store.rules.lunchMinutes,
+      snackMinutes: store.rules.snackMinutes,
+      sundayRule: store.rules.sundayRule,
+      hasOwner: lead.ownerIsPharmacist,
+    },
+    formula.people,
+  ).count;
+}
+
+export function diagnose(store: ScaleStoreInput): Diagnostic {
   const settings = costSettingsOf(store);
   const active = store.roles.filter((r) => r.enabled);
 
@@ -84,13 +104,7 @@ export function diagnose(store: ScaleStoreInput): Diagnostic {
     const lead = members.find((r) => r.minInHall > 0) ?? members[0]!;
     const need = {} as Record<ScenarioId, number>;
     for (const id of Object.keys(SCENARIOS) as ScenarioId[]) {
-      const result = requiredPeople(
-        { ...lead, coverage: lead.coverage, extraPostsPerWeek: 0 },
-        week,
-        SCENARIOS[id],
-        options,
-      );
-      need[id] = result.ok ? result.people : 0;
+      need[id] = neededPeople(store, lead, id);
     }
     const today = members.reduce((n, r) => n + r.headcount, 0);
     const avgSalary =

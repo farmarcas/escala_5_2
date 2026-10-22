@@ -1,6 +1,8 @@
 import { ConflictError } from '../../shared/errors/conflict-error.js';
 import { NotFoundError } from '../../shared/errors/not-found-error.js';
 import { diagnose } from './scales.diagnostic.js';
+import { buildRosterView } from './scales.roster.js';
+import type { ScenarioId } from './engine/rules.js';
 import type { ScaleStoreInput } from './scales.schemas.js';
 
 const NOT_FOUND = 'Loja não encontrada';
@@ -75,6 +77,10 @@ export const makeScalesService = (repo: ScalesRepository) => {
 
     preview(input: ScaleStoreInput) {
       return diagnose(input);
+    },
+
+    async roster(groupId: string, id: string, scenario: ScenarioId) {
+      return buildRosterView(await getById(groupId, id), scenario);
     },
 
     async diagnostic(groupId: string, id: string) {

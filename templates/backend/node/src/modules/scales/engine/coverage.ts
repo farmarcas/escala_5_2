@@ -83,7 +83,9 @@ export function shiftsPerPost(windowMin: number, shift: ShiftModel): number {
   if (windowMin <= 0) return 0;
   const needsLunch = shift.lunchMinutes > 0 && windowMin > SCHEDULE.lunchRequiredAboveMinutes;
   const usefulPerShift = shift.dailyMinutes - (needsLunch ? shift.lunchMinutes : 0);
-  return Math.ceil(windowMin / Math.max(usefulPerShift, 1));
+  const shifts = Math.ceil(windowMin / Math.max(usefulPerShift, 1));
+  // Quem almoça sozinho deixa o salão descoberto: com almoço, são sempre ao menos 2 turnos que se cobrem.
+  return needsLunch ? Math.max(shifts, 2) : shifts;
 }
 
 // Postos por dia da semana (7 posições): mínimo no salão × turnos por posto.

@@ -48,11 +48,11 @@ description: "Tarefas: Painel de Escalas 5x2 (Farmarcas)"
 
 ## Fatia 2: Escala de 4 semanas
 
-- [ ] T020 [P] [S2] `engine/roster.test.ts`: cobertura do salão em todo o horário, farmacêutico presente, 11 h de descanso, rodízio de domingos (1 em 3, 1 em 2, todo domingo), turnos fixos, horas da semana por pessoa, determinismo (mesma entrada, mesma escala)
-- [ ] T021 [S2] `engine/roster.ts`: alocação das pessoas aos postos, horários de almoço e lanche, marcas ("Reforço", "Dono farmacêutico", "Folga dominical"), horas da semana e "Contratar"
-- [ ] T022 [S2] `GET /scales/stores/:id/roster` com teste de integração; desempenho: loja do caso de conferência em até 2 s
-- [ ] T023 [S2] Aba Escala: seletor de cenário e função, semanas em abas, grade com primeira coluna fixa, cores e legenda por tipo de turno, destaque "Contratar", "Coberto", versão do celular (um dia por vez)
-- [ ] T024 [S2] Revisão visual e conferir o roteiro 2 do quickstart
+- [x] T020 [P] [S2] `engine/roster.test.ts`: cobertura do salão em todo o horário, farmacêutico presente, 11 h de descanso, rodízio de domingos (1 em 3, 1 em 2, todo domingo), turnos fixos, horas da semana por pessoa, determinismo (mesma entrada, mesma escala)
+- [x] T021 [S2] `engine/roster.ts`: alocação das pessoas aos postos, horários de almoço e lanche, marcas ("Reforço", "Dono farmacêutico", "Folga dominical"), horas da semana e "Contratar"
+- [x] T022 [S2] `GET /scales/stores/:id/roster` com teste de integração; desempenho: loja do caso de conferência em até 2 s
+- [x] T023 [S2] Aba Escala: seletor de cenário e função, semanas em abas, grade com primeira coluna fixa, cores e legenda por tipo de turno, destaque "Contratar", "Coberto", versão do celular (um dia por vez)
+- [x] T024 [S2] Revisão visual e conferir o roteiro 2 do quickstart
 
 ## Fatia 3: Custos completos
 

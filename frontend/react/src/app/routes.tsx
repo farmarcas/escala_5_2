@@ -18,6 +18,7 @@ import {
   StoreDataTab,
   StoreDiagnosticTab,
   StoreIndexRedirect,
+  StoreRosterTab,
   StorePanelLayout,
   StoresHome,
 } from '@/features/scales';
@@ -47,15 +48,7 @@ export function AppRoutes() {
           <Route path="/painel/lojas/:id" element={<StorePanelLayout />}>
             <Route index element={<StoreIndexRedirect />} />
             <Route path="dados" element={<StoreDataTab />} />
-            <Route
-              path="escala"
-              element={
-                <ComingSoonTab
-                  title="Escala de 4 semanas"
-                  description="Em breve: a escala completa por pessoa e por cenário. Por enquanto veja o diagnóstico."
-                />
-              }
-            />
+            <Route path="escala" element={<StoreRosterTab />} />
             <Route path="diagnostico" element={<StoreDiagnosticTab />} />
             <Route
               path="regras"
