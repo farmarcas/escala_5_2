@@ -69,8 +69,8 @@ description: "Tarefas: Painel de Escalas 5x2 (Farmarcas)"
 
 ## Fatia 5: Vendas, CMV e meta da folha
 
-- [ ] T032 [P] [S5] Testes e `engine/sales.ts`: venda necessária para pagar mercadoria e folha dada a meta
-- [ ] T033 [S5] Passo 6 (opcional) e seção "Vendas, CMV e folha" no Diagnóstico
+- [x] T032 [P] [S5] Testes e `engine/sales.ts`: venda necessária para pagar mercadoria e folha dada a meta
+- [x] T033 [S5] Passo 6 (opcional) e seção "Vendas, CMV e folha" no Diagnóstico
 
 ## Fatia 6: Relatório, alertas, consultor e regras
 

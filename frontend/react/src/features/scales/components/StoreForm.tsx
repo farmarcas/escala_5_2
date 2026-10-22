@@ -11,9 +11,10 @@ import { IdentityStep } from './IdentityStep';
 import { LivePreview } from './LivePreview';
 import { PlantaoStep } from './PlantaoStep';
 import { RulesStep } from './RulesStep';
+import { SalesStep } from './SalesStep';
 import { TeamStep } from './TeamStep';
 
-type StepId = 'identidade' | 'horario' | 'plantao' | 'equipe' | 'regras' | 'feriados';
+type StepId = 'identidade' | 'horario' | 'plantao' | 'equipe' | 'regras' | 'vendas' | 'feriados';
 
 const STEPS: { id: StepId; label: string; prefixes: string[] }[] = [
   {
@@ -25,6 +26,7 @@ const STEPS: { id: StepId; label: string; prefixes: string[] }[] = [
   { id: 'plantao', label: 'Plantão noturno', prefixes: ['plantao'] },
   { id: 'equipe', label: 'Equipe por função', prefixes: ['roles'] },
   { id: 'regras', label: 'Regras, benefícios e encargos', prefixes: ['rules'] },
+  { id: 'vendas', label: 'Vendas, CMV e meta da folha', prefixes: ['sales'] },
   { id: 'feriados', label: 'Feriados', prefixes: ['holidays'] },
 ];
 
@@ -77,6 +79,7 @@ export function StoreForm({ initial, isNew, onSave }: Props) {
     plantao: <PlantaoStep draft={draft} errors={errors} onChange={update} />,
     equipe: <TeamStep draft={draft} errors={errors} onChange={update} />,
     regras: <RulesStep draft={draft} errors={errors} onChange={update} />,
+    vendas: <SalesStep draft={draft} errors={errors} onChange={update} />,
     feriados: <HolidaysStep draft={draft} errors={errors} onChange={update} />,
   }[step];
 
@@ -109,7 +112,7 @@ export function StoreForm({ initial, isNew, onSave }: Props) {
           {body}
         </section>
         <p className="text-muted-foreground text-xs">
-          Vendas, CMV e meta da folha entram na próxima etapa do painel.
+          O passo de vendas é opcional: deixe desligado se não quiser analisar vendas e CMV.
         </p>
         {save.error ? <FormMessage tone="error">{save.error}</FormMessage> : null}
         {preview.status === 'invalid' && Object.keys(errors).length > 0 ? (

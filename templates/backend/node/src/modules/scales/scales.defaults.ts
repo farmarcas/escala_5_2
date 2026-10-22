@@ -1,4 +1,5 @@
 import { DEFAULT_HOLIDAYS } from './engine/holidays.js';
+import { DEFAULT_SALES } from './engine/sales.js';
 import { DEFAULT_PLANTAO } from './engine/plantao.js';
 import type { ScaleRoleInput, ScaleStoreInput } from './scales.schemas.js';
 
@@ -41,6 +42,7 @@ export function defaultStore(scaleStartDate: string): ScaleStoreInput {
     },
     plantao: DEFAULT_PLANTAO,
     holidays: DEFAULT_HOLIDAYS,
+    sales: DEFAULT_SALES,
     roles: [
       role({ role: 'farmaceutico', headcount: 2, monthlySalary: 5200 }),
       role({

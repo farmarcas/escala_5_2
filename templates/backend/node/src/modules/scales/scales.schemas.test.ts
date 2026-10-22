@@ -92,4 +92,13 @@ describe('scaleStoreSchema', () => {
     expect(r.success && r.data.plantao.type).toBe('none');
     expect(r.success && r.data.holidays.national).toBe(true);
   });
+
+  it('análise de vendas ligada exige as vendas mensais', () => {
+    const base = valid();
+    const bad = { ...base, sales: { ...base.sales, enabled: true, monthlySales: 0 } };
+    expect(issues(bad).join()).toContain('Informe as vendas mensais');
+    expect(
+      issues({ ...base, sales: { ...base.sales, enabled: true, monthlySales: 500_000 } }),
+    ).toEqual([]);
+  });
 });

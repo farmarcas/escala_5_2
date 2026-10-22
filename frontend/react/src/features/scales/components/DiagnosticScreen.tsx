@@ -11,6 +11,7 @@ import { StackedBar } from '@/components/ui/StackedBar';
 import { useDiagnostic } from '../hooks/useDiagnostic';
 import { CostComponents } from './CostComponents';
 import { HolidaySummary } from './HolidaySummary';
+import { SalesSection } from './SalesSection';
 import { PerPersonCosts } from './PerPersonCosts';
 import { SCENARIO_LABEL, type ScaleStore, type ScenarioKey } from '../types';
 
@@ -163,6 +164,20 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
           que o mínimo, o excedente aparece como reforço.
         </p>
       </section>
+
+      {d.sales ? (
+        <SalesSection
+          today={d.sales.today}
+          next={d.sales.scenarios[scenario]}
+          nextLabel={label}
+          store={store}
+        />
+      ) : (
+        <p className="text-muted-foreground text-sm">
+          Quer saber quanto a loja precisa vender para pagar a mercadoria e a nova folha? Ative a
+          análise de vendas no passo 6 dos dados da loja.
+        </p>
+      )}
 
       <HolidaySummary summary={d.holidays[scenario]} store={store} />
 

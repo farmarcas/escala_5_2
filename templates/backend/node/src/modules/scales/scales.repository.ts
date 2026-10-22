@@ -1,5 +1,6 @@
 import type { Prisma } from '../../generated/prisma/client.js';
 import { DEFAULT_HOLIDAYS } from './engine/holidays.js';
+import { DEFAULT_SALES } from './engine/sales.js';
 import { DEFAULT_PLANTAO } from './engine/plantao.js';
 import { prisma } from '../../shared/database/prisma.js';
 import type { ScaleRoleInput, ScaleStoreInput } from './scales.schemas.js';
@@ -33,6 +34,7 @@ const toRecord = (row: DbStore): ScaleStoreRecord => {
     rules: ScaleStoreInput['rules'];
     plantao?: ScaleStoreInput['plantao'];
     holidays?: ScaleStoreInput['holidays'];
+    sales?: ScaleStoreInput['sales'];
   };
   return {
     id: row.id,
@@ -46,6 +48,7 @@ const toRecord = (row: DbStore): ScaleStoreRecord => {
     rules: { ...config.rules, indemnifyBreak: config.rules.indemnifyBreak ?? true },
     plantao: config.plantao ?? DEFAULT_PLANTAO,
     holidays: config.holidays ?? DEFAULT_HOLIDAYS,
+    sales: config.sales ?? DEFAULT_SALES,
     roles: row.roles.map(toRole),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -80,6 +83,7 @@ const columns = (input: ScaleStoreInput) => ({
     rules: input.rules,
     plantao: input.plantao,
     holidays: input.holidays,
+    sales: input.sales,
   },
 });
 

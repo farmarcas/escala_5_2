@@ -159,4 +159,21 @@ describe('diagnose', () => {
     expect(d.holidays['5x2_42'].rows).toEqual([]);
     expect(d.payroll.scenarios['5x2_42'].components.holidayDouble).toBe(0);
   });
+
+  it('vendas e CMV: desligado não gera análise; ligado compara hoje e nova folha', () => {
+    const base = { ...defaultStore('2026-12-14'), name: 'Centro', city: 'Varginha', state: 'MG' };
+    expect(diagnose(base).sales).toBeNull();
+    const d = diagnose({
+      ...base,
+      sales: { enabled: true, monthlySales: 1_000_000, cmvRate: 0.7, payrollTargetRate: 0.12 },
+    });
+    const s = d.sales!;
+    expect(s.today.payroll).toBeCloseTo(d.payroll.today.total, 4);
+    expect(s.scenarios['5x2_42'].payroll).toBeCloseTo(d.payroll.scenarios['5x2_42'].total, 4);
+    expect(s.scenarios['5x2_42'].payrollShare).toBeGreaterThan(s.today.payrollShare);
+    expect(s.scenarios['5x2_42'].breakEvenSales).toBeCloseTo(
+      d.payroll.scenarios['5x2_42'].total / 0.3,
+      4,
+    );
+  });
 });

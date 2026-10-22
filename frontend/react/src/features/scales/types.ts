@@ -51,6 +51,25 @@ export type HolidaySettings = {
   openOnHolidays: boolean;
 };
 
+export type SalesSettings = {
+  enabled: boolean;
+  monthlySales: number;
+  cmvRate: number;
+  payrollTargetRate: number;
+};
+
+// Números infinitos chegam como nulos pelo JSON (CMV de 100% ou meta zero: nenhuma venda paga).
+export type SalesAnalysis = {
+  monthlySales: number;
+  cmv: number;
+  payroll: number;
+  payrollShare: number;
+  margin: number;
+  breakEvenSales: number | null;
+  targetSales: number | null;
+  growthToTarget: number | null;
+};
+
 export type ScaleStoreDraft = {
   name: string;
   city: string;
@@ -75,6 +94,7 @@ export type ScaleStoreDraft = {
   };
   plantao: PlantaoSettings;
   holidays: HolidaySettings;
+  sales: SalesSettings;
   roles: ScaleRole[];
 };
 
@@ -158,6 +178,7 @@ export type Diagnostic = {
     >;
   };
   holidays: Record<ScenarioKey, HolidaySummary>;
+  sales: { today: SalesAnalysis; scenarios: Record<ScenarioKey, SalesAnalysis> } | null;
   notes: string[];
 };
 

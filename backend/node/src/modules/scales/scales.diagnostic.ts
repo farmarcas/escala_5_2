@@ -11,6 +11,7 @@ import {
 } from './engine/costs.js';
 import { hourlyRate, nightAdditionMonthly, nightMinutes } from './engine/night.js';
 import { PAY, SCENARIOS, SCHEDULE, type ScenarioId } from './engine/rules.js';
+import { analyzeSales, type SalesAnalysis } from './engine/sales.js';
 import { plantaoNightsPerWeek, plantaoShiftTimes } from './engine/plantao.js';
 import {
   eventsFor,
@@ -104,6 +105,8 @@ export type Diagnostic = {
     >;
   };
   holidays: Record<NewScenario, HolidaySummary>;
+  // Análise de vendas, CMV e meta da folha (nulo quando desligada): hoje e em cada cenário.
+  sales: { today: SalesAnalysis; scenarios: Record<NewScenario, SalesAnalysis> } | null;
   notes: string[];
 };
 
@@ -288,6 +291,17 @@ function holidaySummary(store: ScaleStoreInput, plans: GroupScenario[]): Holiday
   return { rows, compensatoryDays: compensatory };
 }
 
+function salesFor(
+  store: ScaleStoreInput,
+  today: number,
+  next: Record<NewScenario, number>,
+): Diagnostic['sales'] {
+  const now = analyzeSales(store.sales, today);
+  const a = analyzeSales(store.sales, next['5x2_42']);
+  const b = analyzeSales(store.sales, next['5x2_40']);
+  return now && a && b ? { today: now, scenarios: { '5x2_42': a, '5x2_40': b } } : null;
+}
+
 export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides = {}): Diagnostic {
   const settings = costSettingsOf(store, overrides);
   const active = store.roles.filter((r) => r.enabled);
@@ -412,6 +426,10 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
       '5x2_42': holidaySummary(store, allPlans['5x2_42']),
       '5x2_40': holidaySummary(store, allPlans['5x2_40']),
     },
+    sales: salesFor(store, todayPayroll.total, {
+      '5x2_42': scenarios['5x2_42'].total,
+      '5x2_40': scenarios['5x2_40'].total,
+    }),
     notes: [
       'O custo inclui salários, periculosidade, adicional noturno da escala, horas extras e intervalo indenizado do plantão, feriado em dobro (quando escolhido), provisões, encargos e benefícios.',
     ],

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { buildWeekHours } from './engine/coverage.js';
 import { roleWindows } from './engine/coverage.js';
 import { DEFAULT_HOLIDAYS } from './engine/holidays.js';
+import { DEFAULT_SALES } from './engine/sales.js';
 import { DEFAULT_PLANTAO } from './engine/plantao.js';
 import { SUNDAY, windowLength, weekdayOf } from './engine/time.js';
 
@@ -118,6 +119,15 @@ export const holidaysSchema = z
   })
   .strict();
 
+export const salesSchema = z
+  .object({
+    enabled: z.boolean(),
+    monthlySales: z.number().min(0).max(1_000_000_000),
+    cmvRate: z.number().min(0).max(1),
+    payrollTargetRate: z.number().min(0).max(1),
+  })
+  .strict();
+
 const storeShape = z
   .object({
     name: z.string().trim().min(2).max(100),
@@ -129,6 +139,7 @@ const storeShape = z
     rules: rulesSchema,
     plantao: plantaoSchema.default(DEFAULT_PLANTAO),
     holidays: holidaysSchema.default(DEFAULT_HOLIDAYS),
+    sales: salesSchema.default(DEFAULT_SALES),
     roles: z.array(roleSchema).min(1).max(SCALE_ROLES.length),
   })
   .strict();
@@ -162,6 +173,13 @@ export const scaleStoreSchema = storeShape.superRefine((store, ctx) => {
       code: 'custom',
       message: 'O farmacêutico precisa estar presente em todo o horário de funcionamento',
       path: ['roles', pharmacistIndex],
+    });
+  }
+  if (store.sales.enabled && store.sales.monthlySales <= 0) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Informe as vendas mensais para analisar vendas e CMV',
+      path: ['sales', 'monthlySales'],
     });
   }
   if (store.plantao.type !== 'none') {
