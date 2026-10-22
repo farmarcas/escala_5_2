@@ -7,7 +7,7 @@ const NAME_TAKEN = 'Já existe uma loja com esse nome no seu grupo';
 
 export type StoreRoleRecord = {
   role: 'farmaceutico' | 'balconista' | 'caixa' | 'estoquista';
-  minPerShift: number;
+  minPerShift: number | null;
   headcount: number;
   weeklyHours: number;
   monthlySalary: number;
@@ -19,6 +19,7 @@ export type StoreRecord = {
   name: string;
   city: string;
   profile: 'rua' | 'shopping' | '24h';
+  size: 'pequena' | 'media' | 'grande' | null;
   openingHours: { weekday: number; opensAt: string; closesAt: string }[];
   roles: StoreRoleRecord[];
   createdAt: Date;

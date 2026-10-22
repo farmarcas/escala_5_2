@@ -23,6 +23,7 @@ const centro = {
   name: 'Centro',
   city: 'São Paulo',
   profile: '24h',
+  size: 'grande',
   openingHours: [0, 1, 2, 3, 4, 5, 6].map((weekday) => ({
     weekday,
     opensAt: '00:00',
@@ -78,6 +79,74 @@ describe('stores routes', () => {
     expect(removed.status).toBe(204);
     expect((await agent.get(`/api/v1/stores/${id}`)).status).toBe(404);
     expect((await agent.get('/api/v1/stores')).body.meta.total).toBe(0);
+  });
+
+  it('deve exigir o tamanho ao criar e guardá-lo', async () => {
+    const t = makeTestApp();
+    const { agent } = await signUpAndLogin(t, 'ana@rede.com.br');
+    const { size: _size, ...withoutSize } = centro;
+
+    const missing = await agent.post('/api/v1/stores').send(withoutSize);
+    const created = await agent.post('/api/v1/stores').send(centro);
+
+    expect(missing.status).toBe(400);
+    expect(created.status).toBe(201);
+    expect(created.body.store.size).toBe('grande');
+  });
+
+  it('deve cadastrar loja só com o quadro atual, sem mínimo por turno', async () => {
+    const t = makeTestApp();
+    const { agent } = await signUpAndLogin(t, 'ana@rede.com.br');
+    const noMinimum = {
+      ...centro,
+      roles: [
+        { role: 'farmaceutico', headcount: 2, weeklyHours: 44, monthlySalary: 8500 },
+        {
+          role: 'balconista',
+          minPerShift: null,
+          headcount: 10,
+          weeklyHours: 44,
+          monthlySalary: 2100,
+        },
+      ],
+    };
+
+    const created = await agent.post('/api/v1/stores').send(noMinimum);
+    const read = await agent.get(`/api/v1/stores/${created.body.store.id}`);
+
+    expect(created.status).toBe(201);
+    expect(
+      read.body.store.roles.every(
+        (role: { minPerShift: number | null }) => role.minPerShift === null,
+      ),
+    ).toBe(true);
+  });
+
+  it('deve recusar loja sem farmacêutico no quadro', async () => {
+    const t = makeTestApp();
+    const { agent } = await signUpAndLogin(t, 'ana@rede.com.br');
+
+    const response = await agent.post('/api/v1/stores').send({
+      ...centro,
+      roles: [{ role: 'farmaceutico', headcount: 0, weeklyHours: 44, monthlySalary: 8500 }],
+    });
+
+    expect(response.status).toBe(400);
+  });
+
+  it('deve mostrar tamanho nulo em loja antiga e permitir informá-lo ao editar', async () => {
+    const t = makeTestApp();
+    const { agent } = await signUpAndLogin(t, 'ana@rede.com.br');
+    const created = await agent.post('/api/v1/stores').send(centro);
+    const id = created.body.store.id as string;
+    await prisma.store.update({ where: { id }, data: { size: null } });
+
+    const legacy = await agent.get(`/api/v1/stores/${id}`);
+    const updated = await agent.patch(`/api/v1/stores/${id}`).send({ size: 'pequena' });
+
+    expect(legacy.body.store.size).toBeNull();
+    expect(updated.status).toBe(200);
+    expect(updated.body.store.size).toBe('pequena');
   });
 
   it('deve recusar farmacêutico com mínimo zero e loja sem farmacêutico', async () => {

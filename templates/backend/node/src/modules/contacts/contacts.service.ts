@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import { NotFoundError } from '../../shared/errors/not-found-error.js';
 import type { ContactCsvRow } from './contacts.csv.js';
 
@@ -9,8 +8,8 @@ export type ContactRecord = ContactCsvRow & {
 };
 
 export type NewContact = {
-  source: 'consultor' | 'pdf';
-  mode: 'rapido' | 'detalhado';
+  source: 'consultor';
+  mode: 'detalhado';
   name: string;
   roleTitle: string;
   company: string;
@@ -34,15 +33,12 @@ export const makeContactsService = (
   repo: ContactsRepository,
   now: () => Date = () => new Date(),
 ) => ({
-  // Igual para quem envia, mas o isca preenchido não grava nada e envio repetido devolve o mesmo id.
-  async submit(input: NewContact & { website?: string }): Promise<{ id: string }> {
-    if (input.website?.trim()) return { id: randomUUID() };
-
+  // Envio repetido (duplo clique) devolve o mesmo id e não grava de novo.
+  async submit(input: NewContact): Promise<{ id: string }> {
     const existing = await repo.findByKey(input.idempotencyKey);
     if (existing) return existing;
 
-    const { website: _website, ...contact } = input;
-    const created = await repo.create({ ...contact, privacyAcceptedAt: now() });
+    const created = await repo.create({ ...input, privacyAcceptedAt: now() });
     if (created) return created;
 
     // Dois envios iguais ao mesmo tempo: o segundo encontra o primeiro.

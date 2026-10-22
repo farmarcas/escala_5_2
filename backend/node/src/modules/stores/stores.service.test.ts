@@ -7,6 +7,7 @@ const input: CreateStoreInput = {
   name: 'Centro',
   city: 'São Paulo',
   profile: 'rua',
+  size: 'media',
   openingHours: [{ weekday: 1, opensAt: '08:00', closesAt: '20:00' }],
   roles: [
     { role: 'farmaceutico', minPerShift: 1, headcount: 2, weeklyHours: 44, monthlySalary: 8500 },
@@ -33,8 +34,13 @@ const makeFakeRepo = () => {
         name: data.name,
         city: data.city,
         profile: data.profile,
+        size: data.size,
         openingHours: data.openingHours,
-        roles: data.roles.map((role) => ({ ...role, absenceRate: role.absenceRate ?? null })),
+        roles: data.roles.map((role) => ({
+          ...role,
+          minPerShift: role.minPerShift ?? null,
+          absenceRate: role.absenceRate ?? null,
+        })),
         createdAt: new Date(),
         updatedAt: new Date(),
       };

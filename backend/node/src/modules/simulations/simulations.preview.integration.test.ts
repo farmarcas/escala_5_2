@@ -22,6 +22,7 @@ const storeBody = (name: string, roles: object[] = [pharmacist, clerk]) => ({
   name,
   city: 'São Paulo',
   profile: 'rua',
+  size: 'media',
   openingHours: [0, 1, 2, 3, 4, 5, 6].map((weekday) => ({
     weekday,
     opensAt: '08:00',

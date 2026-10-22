@@ -25,7 +25,7 @@ export type CalcInput = {
 
 export type StoreSnapshot = Pick<
   StoreRecord,
-  'id' | 'name' | 'city' | 'profile' | 'openingHours' | 'roles'
+  'id' | 'name' | 'city' | 'profile' | 'size' | 'openingHours' | 'roles'
 >;
 
 // Foto das premissas: o que foi usado no cálculo, com a versão do padrão da Farmarcas na época.
@@ -87,6 +87,7 @@ const snapshotOf = (store: StoreRecord): StoreSnapshot => ({
   name: store.name,
   city: store.city,
   profile: store.profile,
+  size: store.size,
   openingHours: store.openingHours,
   roles: store.roles,
 });

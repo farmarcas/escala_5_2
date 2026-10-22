@@ -13,6 +13,7 @@ const validStore = {
   name: 'Centro',
   city: 'São Paulo',
   profile: 'rua' as const,
+  size: 'media' as const,
   openingHours: [{ weekday: 1, opensAt: '08:00', closesAt: '20:00' }],
   roles: [pharmacist],
 };
@@ -87,5 +88,53 @@ describe('createStoreSchema', () => {
 
   it('deve recusar campos desconhecidos', () => {
     expect(createStoreSchema.safeParse({ ...validStore, groupId: 'x' }).success).toBe(false);
+  });
+
+  it('deve exigir o tamanho da loja na criação', () => {
+    const { size: _size, ...withoutSize } = validStore;
+
+    expect(createStoreSchema.safeParse(withoutSize).success).toBe(false);
+    expect(createStoreSchema.safeParse({ ...validStore, size: 'enorme' }).success).toBe(false);
+    for (const size of ['pequena', 'media', 'grande']) {
+      expect(createStoreSchema.safeParse({ ...validStore, size }).success).toBe(true);
+    }
+  });
+
+  it('deve aceitar função sem mínimo por turno (ausente ou nulo)', () => {
+    const { minPerShift: _min, ...pharmacistWithoutMin } = pharmacist;
+    const clerk = { ...pharmacistWithoutMin, role: 'balconista' as const };
+
+    expect(
+      createStoreSchema.safeParse({ ...validStore, roles: [pharmacistWithoutMin, clerk] }).success,
+    ).toBe(true);
+    expect(
+      createStoreSchema.safeParse({
+        ...validStore,
+        roles: [
+          { ...pharmacist, minPerShift: null },
+          { ...clerk, minPerShift: null },
+        ],
+      }).success,
+    ).toBe(true);
+  });
+
+  it('deve exigir ao menos 1 farmacêutico no quadro, com ou sem mínimo por turno', () => {
+    const { minPerShift: _min, ...pharmacistWithoutMin } = pharmacist;
+
+    expect(
+      createStoreSchema.safeParse({
+        ...validStore,
+        roles: [{ ...pharmacistWithoutMin, headcount: 0 }],
+      }).success,
+    ).toBe(false);
+    expect(
+      createStoreSchema.safeParse({
+        ...validStore,
+        roles: [{ ...pharmacist, headcount: 0, minPerShift: null }],
+      }).success,
+    ).toBe(false);
+    expect(
+      createStoreSchema.safeParse({ ...validStore, roles: [pharmacistWithoutMin] }).success,
+    ).toBe(true);
   });
 });

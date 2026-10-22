@@ -1,9 +1,9 @@
 import { Route, Routes } from 'react-router-dom';
 import { AccountPage } from './AccountPage';
 import { AppLayout } from './AppLayout';
+import { HomeRedirect } from './HomeRedirect';
 import { PrivacyPage } from './PrivacyPage';
 import { ProtectedRoute } from './ProtectedRoute';
-import { RapidoPage } from './RapidoPage';
 import {
   CompareSimulationsPage,
   SavedSimulationPage,
@@ -24,7 +24,7 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route path="/" element={<RapidoPage />} />
+        <Route path="/" element={<HomeRedirect />} />
         <Route path="/entrar" element={<LoginPage />} />
         <Route path="/cadastrar" element={<RegisterPage />} />
         <Route path="/confirmar-email" element={<VerifyEmailPage />} />

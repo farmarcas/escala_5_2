@@ -11,7 +11,8 @@ export type CalcOpeningHour = { weekday: number; opensAt: string; closesAt: stri
 
 export type CalcRole = {
   role: RoleKind;
-  minPerShift: number;
+  // Nulo: o quadro atual é a necessidade da função (cobertura constante).
+  minPerShift: number | null;
   headcount: number;
   weeklyHours: number;
   monthlySalary: number;
@@ -125,7 +126,7 @@ const roleImpact = (
   const newDeficitFor = (hoursToCover: number) =>
     Math.max(0, Math.max(0, hoursToCover - hoursAt40) - Math.max(0, hoursToCover - hoursNow));
 
-  const hoursToCover = weeklyOpenHours * role.minPerShift;
+  const hoursToCover = role.minPerShift === null ? hoursNow : weeklyOpenHours * role.minPerShift;
   const baselineDeficit = Math.max(0, hoursToCover - hoursNow);
   const newDeficit = newDeficitFor(hoursToCover);
   const peopleToHire = peopleFor(newDeficit, hoursPerNewPerson);
@@ -135,7 +136,10 @@ const roleImpact = (
     Math.max(0, mitigation?.hoursReductionPerWeek ?? 0),
     weeklyOpenHours,
   );
-  const residualCover = (weeklyOpenHours - reducedHours) * role.minPerShift;
+  const residualCover =
+    role.minPerShift === null
+      ? hoursNow * (1 - reducedHours / (weeklyOpenHours || 1))
+      : (weeklyOpenHours - reducedHours) * role.minPerShift;
   const effects = actionsForRole(role.role, mitigation?.actions ?? {});
   const residualNewDeficit = newDeficitFor(residualCover) * (1 - combinedReduction(effects));
   const residualPeopleToHire = peopleFor(residualNewDeficit, hoursPerNewPerson);

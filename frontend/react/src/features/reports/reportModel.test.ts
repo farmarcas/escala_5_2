@@ -1,95 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { testPremises } from '@/lib/__fixtures__/premises';
-import { buildSummaryText } from '@/lib/buildSummaryText';
-import { describeQuickResult } from '@/lib/describeQuickResult';
-import { LEGAL_NOTICE } from '@/lib/legalNotice';
-import { calculateQuickImpact, type QuickInput } from '@/lib/quickImpact';
 import { describeTotals } from '@/features/simulations/describeResult';
 import type { DetailedResult } from '@/features/simulations/types';
-import { buildDetailedReport, buildQuickReport } from './reportModel';
+import { LEGAL_NOTICE } from '@/lib/legalNotice';
+import { buildDetailedReport } from './reportModel';
 
 const NOW = new Date('2026-10-22T18:30:00Z');
-
-const input: QuickInput = {
-  storeCount: 20,
-  employees: 400,
-  pctSixByOne: 0.85,
-  averageSalary: 2100,
-  annualRevenue: 120_000_000,
-  profile: 'rua',
-  operatingDays: '7',
-  regime: 'real',
-  maturity: 'avaliacao',
-  markedActions: 0,
-};
-
-const sectionOf = (report: ReturnType<typeof buildQuickReport>, heading: string) =>
-  report.sections.find((section) => section.heading === heading);
-
-describe('buildQuickReport', () => {
-  const result = calculateQuickImpact(input, testPremises);
-  const report = buildQuickReport({ values: input, result, premises: testPremises, now: NOW });
-
-  it('deve trazer os mesmos números da tela (mesma função de descrição)', () => {
-    const view = describeQuickResult(result);
-    const section = sectionOf(report, 'Impacto anual direto estimado');
-    const clean = (text: string) => text.replace(/\u00a0/g, ' ');
-
-    expect(section?.rows?.[0]).toEqual({
-      label: view.headline.label,
-      value: clean(view.headline.value),
-    });
-    expect(section?.rows?.map((row) => row.label)).toEqual([
-      view.headline.label,
-      ...view.metrics.map((metric) => metric.label),
-    ]);
-    expect(section?.rows?.[0]?.value).toBe('R$ 885,1 mil a R$ 1,4 mi');
-  });
-
-  it('deve incluir a síntese para a diretoria igual à da tela', () => {
-    const section = sectionOf(report, 'Síntese para a diretoria');
-
-    expect(section?.paragraphs?.[0]).toBe(buildSummaryText(result).replace(/\u00a0/g, ' '));
-  });
-
-  it('deve listar o perfil informado e as premissas usadas', () => {
-    const profile = sectionOf(report, 'Perfil informado')?.rows;
-    const premises = sectionOf(report, 'Premissas usadas')?.rows;
-
-    expect(profile).toContainEqual({ label: 'Regime tributário', value: 'Lucro Real' });
-    expect(profile).toContainEqual({ label: 'Colaboradores em escala 6x1', value: '85%' });
-    expect(premises).toContainEqual({ label: 'Encargos (Lucro Real e Presumido)', value: '1,55' });
-    expect(premises).toContainEqual({ label: 'Alíquota IRPJ + CSLL (Lucro Real)', value: '34%' });
-    expect(premises?.at(-1)?.value).toContain('provisória');
-  });
-
-  it('deve levar o aviso legal e o nome do arquivo', () => {
-    expect(report.notice).toBe(LEGAL_NOTICE);
-    expect(report.fileName).toBe('relatorio-impacto-escala-6x1.pdf');
-    expect(report.generatedAt).toMatch(/22\/10\/2026/);
-  });
-
-  it('só deve incluir a seção de ações quando há ação marcada', () => {
-    expect(sectionOf(report, 'Redução com ações de mitigação')).toBeUndefined();
-
-    const withActions = buildQuickReport({
-      values: { ...input, markedActions: 2 },
-      result: calculateQuickImpact({ ...input, markedActions: 2 }, testPremises),
-      premises: testPremises,
-      now: NOW,
-    });
-
-    const section = sectionOf(withActions, 'Redução com ações de mitigação');
-    expect(section?.rows).toContainEqual({ label: 'Ações marcadas', value: '2' });
-    expect(section?.rows?.find((row) => row.label === 'Redução estimada')?.value).toBe('33%');
-  });
-
-  it('não deve deixar espaços "colados" que a fonte do PDF não desenha', () => {
-    const text = JSON.stringify(report);
-
-    expect(text).not.toContain('\u00a0');
-  });
-});
 
 const detailed: DetailedResult = {
   totals: {
@@ -217,6 +132,12 @@ describe('buildDetailedReport', () => {
       label: 'Versão das premissas',
       value: '2026-10-22-provisoria',
     });
+  });
+
+  it('deve levar o aviso legal e o nome do arquivo', () => {
+    expect(report.notice).toBe(LEGAL_NOTICE);
+    expect(report.fileName).toBe('relatorio-simulacao-por-loja.pdf');
+    expect(report.generatedAt).toMatch(/22\/10\/2026/);
   });
 
   it('deve usar um título padrão quando a simulação não tem nome', () => {

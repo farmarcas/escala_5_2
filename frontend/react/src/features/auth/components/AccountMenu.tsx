@@ -9,9 +9,14 @@ export function AccountMenu() {
 
   if (state.status === 'anonymous') {
     return (
-      <Link to="/entrar" className="text-sm font-medium underline underline-offset-2">
-        Entrar
-      </Link>
+      <div className="flex items-center gap-4 text-sm">
+        <Link to="/entrar" className="font-medium underline underline-offset-2">
+          Entrar
+        </Link>
+        <Link to="/cadastrar" className="font-medium underline underline-offset-2">
+          Criar conta
+        </Link>
+      </div>
     );
   }
 

@@ -58,7 +58,6 @@ export const createApp = (deps: AppDeps = {}) => {
   });
 
   app.use('/api/v1', sameOrigin(env.APP_BASE_URL));
-  app.use('/api/v1/premises', premisesRouter());
   const auth = makeAuthService({
     repo: authRepository,
     mailer: deps.mailer ?? makeSmtpMailer(),
@@ -66,10 +65,11 @@ export const createApp = (deps: AppDeps = {}) => {
     limiter: deps.loginLimiter ?? new AttemptLimiter({ max: 5, windowMs: 15 * 60_000 }),
     appBaseUrl: env.APP_BASE_URL,
   });
+  app.use('/api/v1/premises', requireSession(auth), premisesRouter());
   app.use('/api/v1/auth', authRouter(auth));
   app.use('/api/v1/groups', groupsRouter(auth));
   app.use('/api/v1/stores', storesRouter(requireSession(auth)));
-  app.use('/api/v1/contact-requests', contactsRouter(deps.contactLimiter));
+  app.use('/api/v1/contact-requests', contactsRouter(requireSession(auth), deps.contactLimiter));
   app.use(
     '/api/v1/admin/contact-requests',
     adminContactsRouter(

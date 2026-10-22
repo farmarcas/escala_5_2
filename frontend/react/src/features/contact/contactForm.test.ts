@@ -9,14 +9,10 @@ import {
 } from './contactForm';
 
 const valid: ContactFormValues = {
-  name: 'Ana Souza',
   roleTitle: 'Diretora',
-  company: 'Rede Saúde',
   phone: '(11) 98888-7777',
-  email: 'ana@rede.com.br',
   sector: '',
   acceptPrivacy: true,
-  website: '',
 };
 
 describe('maskPhone', () => {
@@ -40,19 +36,15 @@ describe('validateContactForm', () => {
     expect(validateContactForm(valid)).toEqual({});
   });
 
-  it('deve exigir todos os campos obrigatórios e o aceite', () => {
+  it('deve exigir cargo, telefone e o aceite', () => {
     const errors = validateContactForm({ ...emptyContactForm(), acceptPrivacy: false });
 
-    expect(Object.keys(errors).sort()).toEqual(
-      ['acceptPrivacy', 'company', 'email', 'name', 'phone', 'roleTitle'].sort(),
-    );
+    expect(Object.keys(errors).sort()).toEqual(['acceptPrivacy', 'phone', 'roleTitle']);
   });
 
-  it('deve recusar e-mail e telefone inválidos', () => {
-    const errors = validateContactForm({ ...valid, email: 'x@y', phone: '(11) 9888' });
-
-    expect(errors.email).toBeDefined();
-    expect(errors.phone).toBeDefined();
+  it('deve recusar telefone sem DDD ou incompleto', () => {
+    expect(validateContactForm({ ...valid, phone: '(11) 9888' }).phone).toBeDefined();
+    expect(validateContactForm({ ...valid, phone: '98888-7777' }).phone).toBeDefined();
   });
 
   it('deve deixar o setor opcional', () => {
@@ -61,40 +53,43 @@ describe('validateContactForm', () => {
 });
 
 describe('buildContactRequest', () => {
+  const snapshot = { profile: { storeCount: 3 }, result: { grossAnnualImpact: 1 } };
+
   it('deve montar o pedido com origem, modo, números e chave do envio', () => {
     const request = buildContactRequest(valid, {
-      source: 'pdf',
-      snapshot: { mode: 'rapido', profile: { employees: 200 }, result: { grossMin: 1 } },
+      snapshot,
       idempotencyKey: 'chave-1234',
       utm: 'utm_source=google',
     });
 
-    expect(request).toMatchObject({
-      source: 'pdf',
-      mode: 'rapido',
-      name: 'Ana Souza',
+    expect(request).toEqual({
+      source: 'consultor',
+      mode: 'detalhado',
+      roleTitle: 'Diretora',
+      phone: '(11) 98888-7777',
       acceptPrivacy: true,
-      profile: { employees: 200 },
-      result: { grossMin: 1 },
+      profile: { storeCount: 3 },
+      result: { grossAnnualImpact: 1 },
       idempotencyKey: 'chave-1234',
       utm: 'utm_source=google',
-      website: '',
     });
-    expect(request.sector).toBeUndefined();
   });
 
-  it('deve limpar espaços e enviar o setor quando informado', () => {
+  it('deve limpar espaços e enviar o setor só quando informado', () => {
     const request = buildContactRequest(
-      { ...valid, name: '  Ana  ', sector: ' Farmácias ' },
-      {
-        source: 'consultor',
-        snapshot: { mode: 'detalhado', profile: {}, result: {} },
-        idempotencyKey: 'chave-1234',
-      },
+      { ...valid, roleTitle: '  Gerente  ', sector: ' Farmácias ' },
+      { snapshot, idempotencyKey: 'chave-1234' },
     );
 
-    expect(request.name).toBe('Ana');
+    expect(request.roleTitle).toBe('Gerente');
     expect(request.sector).toBe('Farmácias');
+    expect('utm' in request).toBe(false);
+  });
+
+  it('não deve mandar nome, e-mail nem empresa (vêm da conta)', () => {
+    const request = buildContactRequest(valid, { snapshot, idempotencyKey: 'chave-1234' });
+
+    expect('name' in request || 'email' in request || 'company' in request).toBe(false);
   });
 });
 

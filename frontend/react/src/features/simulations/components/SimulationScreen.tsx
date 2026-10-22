@@ -175,9 +175,7 @@ function SimulationBody({ defaults, groupRegime, initial }: SimulationBodyProps)
       {preview.data ? (
         <ContactFormModal
           isOpen={isContactOpen}
-          source="consultor"
           snapshot={{
-            mode: 'detalhado',
             profile: {
               storeCount: preview.data.result.stores.length,
               taxRegime: regime,

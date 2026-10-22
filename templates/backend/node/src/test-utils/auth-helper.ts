@@ -6,7 +6,9 @@ import { AttemptLimiter } from '../shared/middlewares/rate-limit.js';
 
 export const PASSWORD = 'senha-de-teste-123';
 
-export const makeTestApp = () => {
+type AppOptions = NonNullable<Parameters<typeof createApp>[0]>;
+
+export const makeTestApp = (options: AppOptions = {}) => {
   const sent: { to: string; subject: string; text: string }[] = [];
   const app: Express = createApp({
     mailer: {
@@ -15,6 +17,7 @@ export const makeTestApp = () => {
       },
     },
     loginLimiter: new AttemptLimiter({ max: 5, windowMs: 15 * 60_000 }),
+    ...options,
   });
   const lastToken = () => sent.at(-1)?.text.match(/token=([\w-]+)/)?.[1] ?? '';
   return { app, sent, lastToken };

@@ -1,2 +1,2 @@
 export { ContactFormModal } from './components/ContactFormModal';
-export type { ContactSnapshot, ContactSource } from './contactForm';
+export type { ContactSnapshot } from './contactForm';

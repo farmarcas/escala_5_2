@@ -16,57 +16,21 @@ import {
   validateContactForm,
   type ContactFormValues,
   type ContactSnapshot,
-  type ContactSource,
 } from '../contactForm';
 
 type ContactFormModalProps = {
   isOpen: boolean;
-  source: ContactSource;
   snapshot: ContactSnapshot;
   onClose: () => void;
-  // Chamado depois que o contato foi registrado (o relatório em PDF baixa aqui). Se falhar, a pessoa vê o
-  // erro e pode tentar de novo: o envio repetido reaproveita a mesma chave e não duplica o contato.
-  onRegistered?: () => void | Promise<void>;
-};
-
-const COPY: Record<
-  ContactSource,
-  { title: string; description: string; submit: string; doneTitle: string; doneText: string }
-> = {
-  consultor: {
-    title: 'Falar com um consultor',
-    description:
-      'Preencha os dados. Um consultor da Farmarcas entra em contato para detalhar o impacto e o plano de adequação do seu grupo.',
-    submit: 'Enviar',
-    doneTitle: 'Solicitação registrada!',
-    doneText: 'Seus dados foram registrados. Nossa equipe entra em contato em breve.',
-  },
-  pdf: {
-    title: 'Baixar relatório em PDF',
-    description:
-      'Informe seus dados para baixar o relatório completo com o resultado da sua simulação.',
-    submit: 'Baixar relatório',
-    doneTitle: 'Relatório baixado!',
-    doneText:
-      'O PDF com o resultado da sua simulação foi baixado. Nossa equipe também pode entrar em contato para aprofundar a análise.',
-  },
 };
 
 type FormBodyProps = Omit<ContactFormModalProps, 'isOpen'>;
 
 // Montado de novo a cada abertura (key): cada tentativa ganha sua própria chave de envio,
 // e um duplo clique reaproveita a mesma, gravando um único pedido.
-function ContactFormBody({ source, snapshot, onClose, onRegistered }: FormBodyProps) {
+function ContactFormBody({ snapshot, onClose }: FormBodyProps) {
   const { state: auth } = useAuth();
-  const copy = COPY[source];
-  const [values, setValues] = useState<ContactFormValues>(() => ({
-    ...emptyContactForm(),
-    ...(auth.status === 'authenticated' && {
-      name: auth.user.name,
-      email: auth.user.email,
-      company: auth.group.name,
-    }),
-  }));
+  const [values, setValues] = useState<ContactFormValues>(emptyContactForm);
   const [showErrors, setShowErrors] = useState(false);
   const [isDone, setIsDone] = useState(false);
   const [idempotencyKey] = useState(() => crypto.randomUUID());
@@ -75,13 +39,11 @@ function ContactFormBody({ source, snapshot, onClose, onRegistered }: FormBodyPr
     await apiFetch('/contact-requests', {
       method: 'POST',
       body: buildContactRequest(formValues, {
-        source,
         snapshot,
         idempotencyKey,
         utm: readUtm(window.location.search),
       }),
     });
-    await onRegistered?.();
   });
 
   const errors = showErrors ? validateContactForm(values) : {};
@@ -98,8 +60,10 @@ function ContactFormBody({ source, snapshot, onClose, onRegistered }: FormBodyPr
   if (isDone) {
     return (
       <div className="flex flex-col gap-4">
-        <FormMessage tone="success">{copy.doneTitle}</FormMessage>
-        <p className="text-sm">{copy.doneText}</p>
+        <FormMessage tone="success">Solicitação registrada!</FormMessage>
+        <p className="text-sm">
+          Seus dados foram registrados. Nossa equipe entra em contato em breve.
+        </p>
         <Button onClick={onClose}>Fechar</Button>
       </div>
     );
@@ -107,14 +71,28 @@ function ContactFormBody({ source, snapshot, onClose, onRegistered }: FormBodyPr
 
   return (
     <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
-      <p className="text-muted-foreground text-sm">{copy.description}</p>
-      <TextField
-        label="Nome"
-        autoComplete="name"
-        value={values.name}
-        onChange={(event) => set('name', event.target.value)}
-        error={errors.name}
-      />
+      <p className="text-muted-foreground text-sm">
+        Um consultor da Farmarcas entra em contato para detalhar o resultado e o plano de adequação
+        da sua loja.
+      </p>
+
+      {auth.status === 'authenticated' ? (
+        <dl className="bg-muted grid gap-1 rounded-md p-3 text-sm">
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground">Nome:</dt>
+            <dd>{auth.user.name}</dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground">E-mail:</dt>
+            <dd>{auth.user.email}</dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="text-muted-foreground">Empresa:</dt>
+            <dd>{auth.group.name}</dd>
+          </div>
+        </dl>
+      ) : null}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <TextField
           label="Cargo"
@@ -122,13 +100,6 @@ function ContactFormBody({ source, snapshot, onClose, onRegistered }: FormBodyPr
           value={values.roleTitle}
           onChange={(event) => set('roleTitle', event.target.value)}
           error={errors.roleTitle}
-        />
-        <TextField
-          label="Empresa"
-          autoComplete="organization"
-          value={values.company}
-          onChange={(event) => set('company', event.target.value)}
-          error={errors.company}
         />
         <TextField
           label="Telefone"
@@ -140,14 +111,6 @@ function ContactFormBody({ source, snapshot, onClose, onRegistered }: FormBodyPr
           onChange={(event) => set('phone', maskPhone(event.target.value))}
           error={errors.phone}
         />
-        <TextField
-          label="E-mail corporativo"
-          type="email"
-          autoComplete="email"
-          value={values.email}
-          onChange={(event) => set('email', event.target.value)}
-          error={errors.email}
-        />
       </div>
       <TextField
         label="Setor (opcional)"
@@ -155,24 +118,10 @@ function ContactFormBody({ source, snapshot, onClose, onRegistered }: FormBodyPr
         onChange={(event) => set('sector', event.target.value)}
       />
 
-      <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
-        <label>
-          Não preencha este campo
-          <input
-            type="text"
-            name="website"
-            tabIndex={-1}
-            autoComplete="off"
-            value={values.website}
-            onChange={(event) => set('website', event.target.value)}
-          />
-        </label>
-      </div>
-
       <div className="flex flex-col gap-1">
         <Checkbox
-          label="Li e aceito a política de privacidade"
-          description="Usamos seus dados só para este contato e para a calculadora."
+          label="Aceito ser contatado e a política de privacidade"
+          description="Usamos seus dados só para este contato e para o painel."
           checked={values.acceptPrivacy}
           onChange={(event) => set('acceptPrivacy', event.target.checked)}
         />
@@ -190,7 +139,7 @@ function ContactFormBody({ source, snapshot, onClose, onRegistered }: FormBodyPr
 
       <div className="flex gap-3">
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Enviando…' : copy.submit}
+          {isSubmitting ? 'Enviando…' : 'Enviar'}
         </Button>
         <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
           Cancelar
@@ -211,7 +160,7 @@ export function ContactFormModal({ isOpen, ...rest }: ContactFormModalProps) {
   }
 
   return (
-    <Modal isOpen={isOpen} title={COPY[rest.source].title} onClose={rest.onClose}>
+    <Modal isOpen={isOpen} title="Falar com um consultor" onClose={rest.onClose}>
       {isOpen ? <ContactFormBody key={openCount} {...rest} /> : null}
     </Modal>
   );

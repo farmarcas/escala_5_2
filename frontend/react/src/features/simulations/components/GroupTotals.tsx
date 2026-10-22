@@ -1,5 +1,4 @@
-import type { Metric } from '@/lib/describeQuickResult';
-import { describeTotals } from '../describeResult';
+import { describeTotals, type Metric } from '../describeResult';
 import type { DetailedResult, RegimeKind } from '../types';
 
 type GroupTotalsProps = { result: DetailedResult; regime: RegimeKind };

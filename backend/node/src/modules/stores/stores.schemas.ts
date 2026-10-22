@@ -29,7 +29,8 @@ export const openingHoursSchema = z
 export const storeRoleSchema = z
   .object({
     role: z.enum(['farmaceutico', 'balconista', 'caixa', 'estoquista']),
-    minPerShift: z.number().int().min(0).max(50),
+    // Opcional: sem ele, o quadro atual é a necessidade da função (cobertura constante).
+    minPerShift: z.number().int().min(0).max(50).nullable().optional(),
     headcount: z.number().int().min(0).max(500),
     weeklyHours: z.number().min(1).max(44),
     monthlySalary: z.number().positive().max(1_000_000),
@@ -45,9 +46,13 @@ export const storeRolesSchema = z
       ctx.addIssue({ code: 'custom', message: 'Há funções repetidas' });
     }
     const pharmacist = roles.find((role) => role.role === 'farmaceutico');
-    if (!pharmacist) {
-      ctx.addIssue({ code: 'custom', message: 'Toda loja precisa de farmacêutico' });
-    } else if (pharmacist.minPerShift < 1) {
+    if (!pharmacist || pharmacist.headcount < 1) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Toda loja precisa de ao menos 1 farmacêutico',
+        path: pharmacist ? [roles.indexOf(pharmacist), 'headcount'] : [],
+      });
+    } else if (pharmacist.minPerShift != null && pharmacist.minPerShift < 1) {
       ctx.addIssue({
         code: 'custom',
         message: 'O farmacêutico é obrigatório durante a abertura: o mínimo por turno é 1',
@@ -60,6 +65,7 @@ const storeShape = {
   name: z.string().trim().min(2).max(100),
   city: z.string().trim().min(2).max(100),
   profile: z.enum(['rua', 'shopping', '24h']),
+  size: z.enum(['pequena', 'media', 'grande']),
   openingHours: openingHoursSchema,
   roles: storeRolesSchema,
 };

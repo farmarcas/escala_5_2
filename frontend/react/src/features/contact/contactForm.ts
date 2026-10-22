@@ -1,36 +1,23 @@
-import { validateEmail } from '@/features/auth/validateAuthForms';
-
-export type ContactSource = 'consultor' | 'pdf';
-
 export type ContactSnapshot = {
-  mode: 'rapido' | 'detalhado';
   profile: Record<string, unknown>;
   result: Record<string, unknown>;
 };
 
+// Nome, e-mail e empresa vêm da conta de quem está logado; o formulário pede só o que a conta não tem.
 export type ContactFormValues = {
-  name: string;
   roleTitle: string;
-  company: string;
   phone: string;
-  email: string;
   sector: string;
   acceptPrivacy: boolean;
-  // Campo isca anti-robô: pessoas nunca o veem nem preenchem.
-  website: string;
 };
 
 export type ContactFormErrors = Partial<Record<keyof ContactFormValues, string>>;
 
 export const emptyContactForm = (): ContactFormValues => ({
-  name: '',
   roleTitle: '',
-  company: '',
   phone: '',
-  email: '',
   sector: '',
   acceptPrivacy: false,
-  website: '',
 });
 
 export const maskPhone = (raw: string): string => {
@@ -45,60 +32,44 @@ export const maskPhone = (raw: string): string => {
 
 export function validateContactForm(values: ContactFormValues): ContactFormErrors {
   const errors: ContactFormErrors = {};
-  if (values.name.trim().length < 2) errors.name = 'Informe seu nome.';
   if (values.roleTitle.trim().length < 2) errors.roleTitle = 'Informe seu cargo.';
-  if (values.company.trim().length < 2) errors.company = 'Informe o nome da empresa.';
   const phoneDigits = values.phone.replace(/\D/g, '');
   if (phoneDigits.length < 10 || phoneDigits.length > 11)
     errors.phone = 'Informe um telefone com DDD.';
-  const email = validateEmail(values.email);
-  if (email) errors.email = email;
-  if (!values.acceptPrivacy) errors.acceptPrivacy = 'É preciso aceitar a política de privacidade.';
+  if (!values.acceptPrivacy)
+    errors.acceptPrivacy = 'É preciso aceitar ser contatado e a política de privacidade.';
   return errors;
 }
 
 export type ContactRequest = {
-  source: ContactSource;
-  mode: ContactSnapshot['mode'];
-  name: string;
+  source: 'consultor';
+  mode: 'detalhado';
   roleTitle: string;
-  company: string;
   phone: string;
-  email: string;
   sector?: string;
   acceptPrivacy: true;
   profile: Record<string, unknown>;
   result: Record<string, unknown>;
   idempotencyKey: string;
   utm?: string;
-  website: string;
 };
 
 export function buildContactRequest(
   values: ContactFormValues,
-  context: {
-    source: ContactSource;
-    snapshot: ContactSnapshot;
-    idempotencyKey: string;
-    utm?: string;
-  },
+  context: { snapshot: ContactSnapshot; idempotencyKey: string; utm?: string },
 ): ContactRequest {
   const sector = values.sector.trim();
   return {
-    source: context.source,
-    mode: context.snapshot.mode,
-    name: values.name.trim(),
+    source: 'consultor',
+    mode: 'detalhado',
     roleTitle: values.roleTitle.trim(),
-    company: values.company.trim(),
     phone: values.phone,
-    email: values.email.trim(),
     ...(sector && { sector }),
     acceptPrivacy: true,
     profile: context.snapshot.profile,
     result: context.snapshot.result,
     idempotencyKey: context.idempotencyKey,
     ...(context.utm && { utm: context.utm }),
-    website: values.website,
   };
 }
 

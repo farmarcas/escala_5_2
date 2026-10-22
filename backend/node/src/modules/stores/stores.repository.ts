@@ -16,6 +16,7 @@ const toRecord = (row: DbStore): StoreRecord => ({
   name: row.name,
   city: row.city,
   profile: profileFromDb(row.profile),
+  size: row.size,
   openingHours: row.openingHours as StoreRecord['openingHours'],
   roles: row.roles.map((role) => ({
     role: role.role,
@@ -32,7 +33,7 @@ const toRecord = (row: DbStore): StoreRecord => ({
 const roleRows = (roles: CreateStoreInput['roles']) =>
   roles.map((role) => ({
     role: role.role,
-    minPerShift: role.minPerShift,
+    minPerShift: role.minPerShift ?? null,
     headcount: role.headcount,
     weeklyHours: role.weeklyHours,
     monthlySalary: role.monthlySalary,
@@ -85,6 +86,7 @@ export const storesRepository: StoresRepository = {
         name: input.name,
         city: input.city,
         profile: profileToDb(input.profile),
+        size: input.size,
         openingHours: input.openingHours,
         roles: { create: roleRows(input.roles) },
       },
@@ -102,6 +104,7 @@ export const storesRepository: StoresRepository = {
           ...(input.name !== undefined && { name: input.name }),
           ...(input.city !== undefined && { city: input.city }),
           ...(input.profile !== undefined && { profile: profileToDb(input.profile) }),
+          ...(input.size !== undefined && { size: input.size }),
           ...(input.openingHours !== undefined && { openingHours: input.openingHours }),
         },
       });

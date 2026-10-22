@@ -1,21 +1,10 @@
-import type { Metric } from '@/lib/describeQuickResult';
-import { buildSummaryText } from '@/lib/buildSummaryText';
-import { describeQuickResult } from '@/lib/describeQuickResult';
-import {
-  formatBRL,
-  formatBRLCompact,
-  formatDateTime,
-  formatInt,
-  formatPercent,
-} from '@/lib/formatPtBr';
+import { formatBRLCompact, formatDateTime, formatInt, formatPercent } from '@/lib/formatPtBr';
 import { LEGAL_NOTICE } from '@/lib/legalNotice';
-import type { Premises } from '@/lib/premisesTypes';
-import type { QuickInput, QuickResult } from '@/lib/quickImpact';
-import { DAYS_LABELS, MATURITY_LABELS, REGIME_LABELS } from '@/lib/quickLabels';
 import {
   describeStoreRoles,
   describeTotals,
   hoursText,
+  type Metric,
 } from '@/features/simulations/describeResult';
 import { REGIME_LABELS as DETAILED_REGIME_LABELS } from '@/features/simulations/regimeLabels';
 import type {
@@ -53,95 +42,6 @@ const rows = (metrics: Metric[]): ReportRow[] =>
   metrics.map((metric) => ({ label: metric.label, value: clean(metric.value) }));
 const pct = (fraction: number) => formatPercent(fraction, 1).replace(/,0%$/, '%');
 const factor = (value: number) => value.toLocaleString('pt-BR', { maximumFractionDigits: 4 });
-
-export function buildQuickReport(input: {
-  values: QuickInput;
-  result: QuickResult;
-  premises: Premises;
-  now?: Date;
-}): Report {
-  const { values, result, premises } = input;
-  const profile = premises.quick.profiles[values.profile];
-  const view = describeQuickResult(result);
-
-  const sections: ReportSection[] = [
-    {
-      heading: 'Perfil informado',
-      rows: [
-        { label: 'Número de lojas', value: formatInt(values.storeCount) },
-        { label: 'Total de colaboradores', value: formatInt(values.employees) },
-        { label: 'Colaboradores em escala 6x1', value: formatPercent(values.pctSixByOne, 0) },
-        {
-          label: 'Salário médio mensal dos afetados',
-          value: clean(formatBRL(values.averageSalary)),
-        },
-        { label: 'Faturamento anual do grupo', value: clean(formatBRL(values.annualRevenue)) },
-        { label: 'Perfil predominante das lojas', value: profile.label },
-        { label: 'Dias de funcionamento', value: DAYS_LABELS[values.operatingDays] },
-        { label: 'Regime tributário', value: REGIME_LABELS[values.regime] },
-        { label: 'Maturidade de adequação', value: MATURITY_LABELS[values.maturity] },
-      ],
-    },
-    {
-      heading: 'Impacto anual direto estimado',
-      rows: rows([view.headline, ...view.metrics]),
-    },
-  ];
-
-  if (result.mitigation.current > 0) {
-    sections.push({
-      heading: 'Redução com ações de mitigação',
-      rows: [
-        { label: 'Ações marcadas', value: formatInt(values.markedActions) },
-        { label: 'Redução estimada', value: formatPercent(result.mitigation.current, 0) },
-        { label: 'Economia estimada por ano', value: clean(formatBRLCompact(result.savings)) },
-        {
-          label: 'Impacto residual por ano',
-          value: `${clean(formatBRLCompact(result.residualMin))} a ${clean(formatBRLCompact(result.residualMax))}`,
-        },
-      ],
-    });
-  }
-
-  sections.push(
-    { heading: 'Síntese para a diretoria', paragraphs: [clean(buildSummaryText(result))] },
-    {
-      heading: 'Premissas usadas',
-      rows: [
-        {
-          label: 'Encargos (Lucro Real e Presumido)',
-          value: factor(premises.taxation.chargesRealPresumido),
-        },
-        { label: 'Encargos (Simples Nacional)', value: factor(premises.taxation.chargesSimples) },
-        { label: 'Meses de remuneração por ano', value: factor(premises.taxation.monthsPerYear) },
-        { label: 'Alíquota IRPJ + CSLL (Lucro Real)', value: pct(premises.taxation.irpjCsllRate) },
-        { label: `Margem operacional (${profile.label})`, value: pct(profile.operatingMargin) },
-        {
-          label: `Cobertura (${profile.label})`,
-          value: `${pct(profile.coverageMin)} a ${pct(profile.coverageMax)}`,
-        },
-        { label: 'Redução mínima com ações', value: pct(premises.quick.mitigation.floor) },
-        {
-          label: 'Redução máxima com ações (maturidade)',
-          value: pct(premises.quick.mitigation.capByMaturity[values.maturity]),
-        },
-        {
-          label: 'Versão das premissas',
-          value: `${premises.version}${premises.provisional ? ' (provisória)' : ''}`,
-        },
-      ],
-    },
-  );
-
-  return {
-    title: 'Quanto vale o fim da escala 6x1 para o seu grupo?',
-    subtitle: 'Simulação de impacto financeiro da PEC 221/19 · Modo rápido',
-    generatedAt: formatDateTime((input.now ?? new Date()).toISOString()),
-    sections,
-    notice: LEGAL_NOTICE,
-    fileName: 'relatorio-impacto-escala-6x1.pdf',
-  };
-}
 
 export function buildDetailedReport(input: {
   name?: string;

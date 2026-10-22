@@ -4,7 +4,7 @@ import type { Report } from './reportModel';
 
 const report = (extraSections = 0): Report => ({
   title: 'Quanto vale o fim da escala 6x1 para o seu grupo?',
-  subtitle: 'Simulação de impacto financeiro da PEC 221/19 · Modo rápido',
+  subtitle: 'Simulação de impacto financeiro da PEC 221/19 · Modo detalhado',
   generatedAt: '22/10/2026, 15:30',
   sections: [
     {

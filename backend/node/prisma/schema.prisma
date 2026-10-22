@@ -24,6 +24,12 @@ enum StoreProfile {
   h24 @map("24h")
 }
 
+enum StoreSize {
+  pequena
+  media
+  grande
+}
+
 enum StoreRoleKind {
   farmaceutico
   balconista
@@ -120,6 +126,8 @@ model Store {
   name         String
   city         String
   profile      StoreProfile
+  // Porte informado pelo dono; nulo nas lojas cadastradas antes desta coluna existir.
+  size         StoreSize?
   openingHours Json         @map("opening_hours")
   deletedAt    DateTime?    @map("deleted_at") @db.Timestamptz(3)
   createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -135,7 +143,8 @@ model StoreRole {
   id            String        @id @default(uuid(7)) @db.Uuid
   storeId       String        @map("store_id") @db.Uuid
   role          StoreRoleKind
-  minPerShift   Int           @map("min_per_shift") @db.SmallInt
+  // Opcional: sem ele, o quadro atual é a necessidade da função (cobertura constante).
+  minPerShift   Int?          @map("min_per_shift") @db.SmallInt
   headcount     Int           @db.SmallInt
   weeklyHours   Decimal       @map("weekly_hours") @db.Decimal(4, 1)
   monthlySalary Decimal       @map("monthly_salary") @db.Decimal(12, 2)

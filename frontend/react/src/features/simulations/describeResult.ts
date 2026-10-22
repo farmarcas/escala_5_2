@@ -1,7 +1,8 @@
 import { ROLE_LABELS } from '@/features/stores/storeForm';
-import type { Metric } from '@/lib/describeQuickResult';
 import { formatBRL, formatBRLCompact, formatInt, formatPlainNumber } from '@/lib/formatPtBr';
 import type { DetailedResult, RegimeKind, StoreImpact } from './types';
+
+export type Metric = { label: string; value: string; caption?: string };
 
 export const hoursText = (value: number) => `${formatPlainNumber(Math.round(value * 10) / 10)} h`;
 

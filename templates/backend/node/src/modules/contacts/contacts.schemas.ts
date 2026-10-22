@@ -29,24 +29,22 @@ const phone = z
 const text = (min: number, max: number) => z.string().trim().min(min).max(max);
 const snapshot = z.record(z.string(), z.unknown());
 
+// Nome, e-mail e empresa vêm da conta de quem está logado; o corpo traz só o que a conta não tem.
 export const createContactRequestSchema = z.object({
   body: z
     .object({
-      source: z.enum(['consultor', 'pdf']),
-      name: text(2, 100),
+      source: z.literal('consultor'),
       roleTitle: text(2, 100),
-      company: text(2, 150),
       phone,
-      email: z.string().trim().toLowerCase().email().max(254),
       sector: z.string().trim().max(100).optional(),
-      acceptPrivacy: z.literal(true, { error: 'É preciso aceitar a política de privacidade' }),
-      mode: z.enum(['rapido', 'detalhado']),
+      acceptPrivacy: z.literal(true, {
+        error: 'É preciso aceitar ser contatado e a política de privacidade',
+      }),
+      mode: z.literal('detalhado'),
       profile: snapshot,
       result: snapshot,
       idempotencyKey: z.string().min(8).max(100),
       utm: z.string().max(500).optional(),
-      // Campo isca: pessoas não o veem; robôs costumam preenchê-lo.
-      website: z.string().max(500).optional(),
     })
     .strict(),
   params: emptyObject,
