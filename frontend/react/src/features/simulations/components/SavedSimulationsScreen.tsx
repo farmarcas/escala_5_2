@@ -97,7 +97,7 @@ export function SavedSimulationsScreen() {
                   <div className="flex flex-wrap items-center gap-2">
                     <Link
                       to={`/simulacoes/${simulation.id}`}
-                      className="text-primary font-semibold underline"
+                      className="text-primary-strong font-semibold underline"
                     >
                       {simulation.name}
                     </Link>

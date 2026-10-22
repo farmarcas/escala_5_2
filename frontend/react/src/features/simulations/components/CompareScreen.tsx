@@ -67,7 +67,7 @@ export function CompareScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link to="/simulacoes" className="text-primary text-sm font-medium underline">
+      <Link to="/simulacoes" className="text-primary-strong text-sm font-medium underline">
         Voltar para as simulações salvas
       </Link>
       <h1 className="text-2xl font-bold">Comparar simulações</h1>
@@ -90,7 +90,7 @@ export function CompareScreen() {
                   <th key={item.id} scope="col" className="py-2 pr-3 align-top">
                     <Link
                       to={`/simulacoes/${item.id}`}
-                      className="text-primary font-semibold underline"
+                      className="text-primary-strong font-semibold underline"
                     >
                       {item.name}
                     </Link>
@@ -119,7 +119,9 @@ export function CompareScreen() {
                         state.items.some((other) => row.best?.(other) !== lowest);
                       return (
                         <td key={item.id} className="py-2 pr-3 tabular-nums">
-                          <span className={isBest ? 'text-primary font-semibold' : undefined}>
+                          <span
+                            className={isBest ? 'text-primary-strong font-semibold' : undefined}
+                          >
                             {row.value(item)}
                           </span>
                           {isBest ? <span className="ml-2 text-xs">menor</span> : null}

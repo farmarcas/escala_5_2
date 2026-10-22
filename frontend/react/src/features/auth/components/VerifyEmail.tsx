@@ -31,7 +31,7 @@ export function VerifyEmail() {
       {status.kind === 'ok' ? (
         <>
           <FormMessage tone="success">E-mail confirmado! Sua conta está ativa.</FormMessage>
-          <Link to="/entrar" className="text-primary text-sm font-medium underline">
+          <Link to="/entrar" className="text-primary-strong text-sm font-medium underline">
             Entrar
           </Link>
         </>
@@ -39,7 +39,7 @@ export function VerifyEmail() {
       {status.kind === 'error' ? (
         <>
           <FormMessage tone="error">{status.message}</FormMessage>
-          <Link to="/cadastrar" className="text-primary text-sm font-medium underline">
+          <Link to="/cadastrar" className="text-primary-strong text-sm font-medium underline">
             Criar a conta de novo
           </Link>
         </>

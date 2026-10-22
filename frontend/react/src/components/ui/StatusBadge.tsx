@@ -3,7 +3,7 @@ import { cn } from '@/lib/cn';
 
 const badgeTone = {
   neutral: 'bg-muted text-muted-foreground',
-  success: 'bg-accent text-primary',
+  success: 'bg-accent text-primary-strong',
   warning: 'bg-warning-background text-warning',
 } as const;
 

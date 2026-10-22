@@ -60,7 +60,7 @@ function Loaded({ simulation, onChanged }: LoadedProps) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
-        <Link to="/simulacoes" className="text-primary text-sm font-medium underline">
+        <Link to="/simulacoes" className="text-primary-strong text-sm font-medium underline">
           Voltar para as simulações salvas
         </Link>
         <div className="flex flex-wrap items-center gap-2">
@@ -179,7 +179,7 @@ export function SavedSimulationDetail({ id }: SavedSimulationDetailProps) {
     return (
       <div role="alert" className="flex flex-col items-start gap-3">
         <FormMessage tone="error">{state.message}</FormMessage>
-        <Link to="/simulacoes" className="text-primary text-sm font-medium underline">
+        <Link to="/simulacoes" className="text-primary-strong text-sm font-medium underline">
           Voltar para as simulações salvas
         </Link>
       </div>

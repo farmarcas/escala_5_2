@@ -30,7 +30,7 @@ export function ForgotPasswordForm() {
       title="Esqueci minha senha"
       description="Informe o e-mail da conta e enviaremos um link para criar uma nova senha."
       footer={
-        <Link to="/entrar" className="text-primary font-medium underline">
+        <Link to="/entrar" className="text-primary-strong font-medium underline">
           Voltar para a entrada
         </Link>
       }

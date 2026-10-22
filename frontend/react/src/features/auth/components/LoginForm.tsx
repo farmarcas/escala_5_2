@@ -32,12 +32,12 @@ export function LoginForm() {
       description="Acesse o modo detalhado, por loja."
       footer={
         <div className="flex flex-col gap-1">
-          <Link to="/esqueci-a-senha" className="text-primary font-medium underline">
+          <Link to="/esqueci-a-senha" className="text-primary-strong font-medium underline">
             Esqueci minha senha
           </Link>
           <span>
             Ainda não tem conta?{' '}
-            <Link to="/cadastrar" className="text-primary font-medium underline">
+            <Link to="/cadastrar" className="text-primary-strong font-medium underline">
               Criar conta
             </Link>
           </span>

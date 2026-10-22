@@ -38,7 +38,7 @@ export function ImpactResult({ result, presumidoLimit }: ImpactResultProps) {
       ) : null}
 
       {!result.hasImpact ? (
-        <p role="status" className="bg-accent text-primary rounded-md p-4 text-sm">
+        <p role="status" className="bg-accent text-primary-strong rounded-md p-4 text-sm">
           Nenhum colaborador está em escala 6x1 com os dados informados, então não há impacto
           estimado. Ajuste o percentual para simular outro cenário.
         </p>
@@ -46,7 +46,7 @@ export function ImpactResult({ result, presumidoLimit }: ImpactResultProps) {
         <div aria-live="polite" className="flex flex-col gap-4">
           <div className="bg-accent rounded-md p-4">
             <p className="text-muted-foreground text-xs font-medium">{view.headline.label}</p>
-            <p className="text-primary mt-1 text-2xl font-bold">{view.headline.value}</p>
+            <p className="text-primary-strong mt-1 text-2xl font-bold">{view.headline.value}</p>
             <p className="text-muted-foreground mt-1 text-xs">
               Faixa entre o cenário mais leve e o mais pesado, conforme a cobertura de equipe.
             </p>

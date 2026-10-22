@@ -33,7 +33,7 @@ export function ResetPasswordForm() {
         <FormMessage tone="error">
           Este link não tem o código de redefinição. Peça um novo link.
         </FormMessage>
-        <Link to="/esqueci-a-senha" className="text-primary text-sm font-medium underline">
+        <Link to="/esqueci-a-senha" className="text-primary-strong text-sm font-medium underline">
           Pedir novo link
         </Link>
       </AuthCard>
@@ -47,7 +47,7 @@ export function ResetPasswordForm() {
           <FormMessage tone="success">
             Senha alterada. Por segurança, você foi desconectado dos outros aparelhos.
           </FormMessage>
-          <Link to="/entrar" className="text-primary text-sm font-medium underline">
+          <Link to="/entrar" className="text-primary-strong text-sm font-medium underline">
             Entrar com a nova senha
           </Link>
         </>

@@ -1,9 +1,11 @@
 import type { Report, ReportSection } from './reportModel';
 
 const PAGE_MARGIN = 40;
-const NAVY: [number, number, number] = [11, 110, 79];
-const SLATE: [number, number, number] = [86, 96, 89];
-const INK: [number, number, number] = [20, 33, 61];
+// Cores do Alquimia: azul escuro (da-800) no cabeçalho, azul (rp-600) nos títulos.
+const HEADER: [number, number, number] = [23, 43, 77];
+const NAVY: [number, number, number] = [7, 74, 198];
+const SLATE: [number, number, number] = [94, 108, 132];
+const INK: [number, number, number] = [23, 43, 77];
 
 // Desenha o modelo do relatório em PDF (A4). Carrega a biblioteca só quando alguém pede o arquivo.
 export async function renderReportPdf(report: Report) {
@@ -95,7 +97,7 @@ export async function renderReportPdf(report: Report) {
       });
     });
     y += 6;
-    doc.setDrawColor(217, 226, 222);
+    doc.setDrawColor(211, 216, 221);
     doc.line(PAGE_MARGIN, y, pageWidth - PAGE_MARGIN, y);
     y += 12;
 
@@ -113,7 +115,7 @@ export async function renderReportPdf(report: Report) {
   };
 
   // Cabeçalho
-  doc.setFillColor(...NAVY);
+  doc.setFillColor(...HEADER);
   doc.rect(0, 0, pageWidth, 96, 'F');
   y = 52;
   text(report.title, PAGE_MARGIN, {
@@ -144,7 +146,7 @@ export async function renderReportPdf(report: Report) {
 
   // Aviso legal e numeração das páginas
   ensureSpace(70);
-  doc.setFillColor(241, 245, 243);
+  doc.setFillColor(240, 243, 246);
   doc.rect(PAGE_MARGIN, y, contentWidth, 56, 'F');
   y += 18;
   doc.setFont('helvetica', 'normal');

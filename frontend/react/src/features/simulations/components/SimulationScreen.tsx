@@ -148,7 +148,7 @@ function SimulationBody({ defaults, groupRegime, initial }: SimulationBodyProps)
           <Button variant="secondary" onClick={() => setIsContactOpen(true)}>
             Falar com um consultor
           </Button>
-          <Link to="/simulacoes" className="text-primary text-sm font-medium underline">
+          <Link to="/simulacoes" className="text-primary-strong text-sm font-medium underline">
             Ver simulações salvas
           </Link>
         </div>
@@ -219,7 +219,7 @@ function ScreenHeader() {
           Quanto custa passar de 44h para 40h semanais, loja a loja, a partir da equipe cadastrada.
         </p>
       </div>
-      <Link to="/lojas" className="text-primary text-sm font-medium underline">
+      <Link to="/lojas" className="text-primary-strong text-sm font-medium underline">
         Voltar para minhas lojas
       </Link>
     </div>
@@ -244,7 +244,7 @@ function SimulationFromBase({ baseId, defaults, groupRegime }: WithBaseProps) {
     return (
       <div role="alert" className="flex flex-col items-start gap-3">
         <FormMessage tone="error">{state.message}</FormMessage>
-        <Link to="/simulacao" className="text-primary text-sm font-medium underline">
+        <Link to="/simulacao" className="text-primary-strong text-sm font-medium underline">
           Começar uma simulação nova
         </Link>
       </div>

@@ -42,7 +42,7 @@ export function RegisterForm() {
         <FormMessage tone="success">
           {`Enviamos um link de confirmação para ${values.email.trim()}. Clique nele para ativar a conta e depois entre.`}
         </FormMessage>
-        <Link to="/entrar" className="text-primary text-sm font-medium underline">
+        <Link to="/entrar" className="text-primary-strong text-sm font-medium underline">
           Ir para a entrada
         </Link>
       </AuthCard>
@@ -56,7 +56,7 @@ export function RegisterForm() {
       footer={
         <>
           Já tem conta?{' '}
-          <Link to="/entrar" className="text-primary font-medium underline">
+          <Link to="/entrar" className="text-primary-strong font-medium underline">
             Entrar
           </Link>
         </>
@@ -100,7 +100,7 @@ export function RegisterForm() {
             checked={values.acceptPrivacy}
             onChange={(event) => set('acceptPrivacy', event.target.checked)}
           />
-          <Link to="/privacidade" className="text-primary text-xs underline">
+          <Link to="/privacidade" className="text-primary-strong text-xs underline">
             Ler a política de privacidade
           </Link>
           {errors.acceptPrivacy ? (

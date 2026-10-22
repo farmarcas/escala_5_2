@@ -16,7 +16,7 @@ export function PrivacyPage() {
         Você pode pedir a exclusão da sua conta e dos dados do seu grupo a qualquer momento. Não
         usamos seus dados para outra finalidade sem avisar antes.
       </p>
-      <Link to="/" className="text-primary font-medium underline">
+      <Link to="/" className="text-primary-strong font-medium underline">
         Voltar para a calculadora
       </Link>
     </article>

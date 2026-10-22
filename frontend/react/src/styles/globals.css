@@ -1,32 +1,109 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/inter';
 
+/*
+  Identidade visual do Alquimia (design system da Farmarcas).
+  A paleta abaixo é copiada de `packages/tailwind/theme.css` do repositório
+  farmarcas/alquimia-design-system-stencil. Os tokens semânticos do projeto (primary, muted, border...)
+  apontam para ela: componente nenhum usa cor crua.
+*/
 @theme {
-  --color-background: #ffffff;
-  --color-foreground: #14213d;
-  --color-primary: #0b6e4f;
-  --color-primary-foreground: #ffffff;
-  --color-muted: #f1f5f3;
-  --color-muted-foreground: #5b6b66;
-  --color-destructive: #c62828;
-  --color-destructive-foreground: #ffffff;
-  --color-border: #d9e2de;
-  --color-ring: #0b6e4f;
-  --color-accent: #e8f5ef;
-  --color-warning: #8a5a00;
-  --color-warning-background: #fff4d6;
+  /* Só as cores do Alquimia: some a paleta padrão do Tailwind */
+  --color-red-*: initial;
+  --color-orange-*: initial;
+  --color-amber-*: initial;
+  --color-yellow-*: initial;
+  --color-lime-*: initial;
+  --color-green-*: initial;
+  --color-emerald-*: initial;
+  --color-teal-*: initial;
+  --color-sky-*: initial;
+  --color-cyan-*: initial;
+  --color-blue-*: initial;
+  --color-indigo-*: initial;
+  --color-violet-*: initial;
+  --color-purple-*: initial;
+  --color-fuchsia-*: initial;
+  --color-pink-*: initial;
+  --color-rose-*: initial;
+  --color-slate-*: initial;
+  --color-gray-*: initial;
+  --color-zinc-*: initial;
+  --color-neutral-*: initial;
+  --color-stone-*: initial;
+
+  --font-sans: 'Inter Variable', Inter, system-ui, sans-serif;
+
+  /* Azul principal (rp), escuros do tema (da), neutros (mi, li) */
+  --color-rp-800: #00389e;
+  --color-rp-600: #074ac6;
+  --color-rp-500: #006ff7;
+  --color-rp-400: #0091ff;
+  --color-rp-200: #50b3ff;
+  --color-rp-100: #89c9ff;
+  --color-rp-50: #c7e4ff;
+  --color-rp-25: #e4f2ff;
+
+  --color-da-900: #061938;
+  --color-da-800: #172b4d;
+  --color-da-700: #253858;
+  --color-da-600: #344563;
+  --color-da-500: #42526e;
+
+  --color-mi-400: #505f79;
+  --color-mi-300: #5e6c84;
+  --color-mi-200: #6b778c;
+  --color-mi-100: #7a869a;
+  --color-mi-70: #a5adba;
+
+  --color-li-50: #c1c7d0;
+  --color-li-40: #d3d8dd;
+  --color-li-30: #e5e8eb;
+  --color-li-20: #f0f3f6;
+  --color-li-10: #fafbfc;
+  --color-li-00: #ffffff;
+
+  /* Alerta (wa), atenção (at), sucesso (su) */
+  --color-wa-300: #df0028;
+  --color-wa-200: #ff6783;
+  --color-wa-50: #ffcfda;
+  --color-at-500: #ab7a00;
+  --color-at-50: #ffeecd;
+  --color-su-500: #588e1a;
+  --color-su-50: #f0ffd7;
+
+  /* Tokens semânticos do projeto (o que os componentes usam) */
+  --color-background: var(--color-li-00);
+  --color-foreground: var(--color-da-800);
+  --color-primary: var(--color-rp-500);
+  --color-primary-hover: var(--color-rp-600);
+  --color-primary-active: var(--color-rp-800);
+  --color-primary-disabled: var(--color-rp-100);
+  /* Texto azul sobre fundo claro: rp-600 garante contraste mínimo de 4,5:1 */
+  --color-primary-strong: var(--color-rp-600);
+  --color-primary-foreground: var(--color-li-00);
+  --color-muted: var(--color-li-20);
+  --color-muted-foreground: var(--color-mi-300);
+  --color-destructive: var(--color-wa-300);
+  --color-destructive-foreground: var(--color-li-00);
+  --color-border: var(--color-li-40);
+  --color-input: var(--color-li-50);
+  --color-ring: var(--color-rp-500);
+  --color-accent: var(--color-rp-25);
+  /* Texto de atenção mais escuro que at-500, para contraste sobre at-50 */
+  --color-warning: #7a5200;
+  --color-warning-background: var(--color-at-50);
+
   --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.5rem;
 }
 
 @layer base {
   body {
     @apply bg-background text-foreground antialiased;
-    font-family:
-      system-ui,
-      -apple-system,
-      'Segoe UI',
-      Roboto,
-      sans-serif;
+    font-family: var(--font-sans);
+    /* A Inter troca "6x1" por "6×1"; mantemos o texto como a pessoa lê e escreve. */
+    font-feature-settings: 'calt' 0;
   }
 }

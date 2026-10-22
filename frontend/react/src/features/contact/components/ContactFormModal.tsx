@@ -176,7 +176,7 @@ function ContactFormBody({ source, snapshot, onClose, onRegistered }: FormBodyPr
           checked={values.acceptPrivacy}
           onChange={(event) => set('acceptPrivacy', event.target.checked)}
         />
-        <Link to="/privacidade" target="_blank" className="text-primary text-xs underline">
+        <Link to="/privacidade" target="_blank" className="text-primary-strong text-xs underline">
           Ler a política de privacidade
         </Link>
         {errors.acceptPrivacy ? (
