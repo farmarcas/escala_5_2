@@ -56,10 +56,10 @@ description: "Tarefas: Painel de Escalas 5x2 (Farmarcas)"
 
 ## Fatia 3: Custos completos
 
-- [ ] T025 [P] [S3] `engine/costs.test.ts` ampliado: periculosidade, adicional noturno, horas extras de plantão, reflexo no DSR, intervalo indenizado, feriado em dobro, 13º, férias + 1/3, FGTS e multa, INSS + RAT + terceiros, VT com desconto de até 6%, benefícios; Simples x Presumido/Real, com e sem provisões
-- [ ] T026 [S3] `engine/costs.ts` completo, custo direto x indireto e custo por colaborador; teste dourado da tabela de componentes (com diferenças explicadas)
-- [ ] T027 [S3] Passo 5 do cadastro (folga dominical, CCT, almoço, lanche, provisões, 12x36, VT, benefícios, encargos avançados) e alternadores de regime e provisões no Diagnóstico
-- [ ] T028 [S3] Diagnóstico: tabela de componentes, custo por colaborador, barras empilhadas direto x indireto; revisão visual e roteiro 3
+- [x] T025 [P] [S3] `engine/costs.test.ts` ampliado: periculosidade, adicional noturno, horas extras de plantão, reflexo no DSR, intervalo indenizado, feriado em dobro, 13º, férias + 1/3, FGTS e multa, INSS + RAT + terceiros, VT com desconto de até 6%, benefícios; Simples x Presumido/Real, com e sem provisões
+- [x] T026 [S3] `engine/costs.ts` completo, custo direto x indireto e custo por colaborador; teste dourado da tabela de componentes (com diferenças explicadas)
+- [x] T027 [S3] (CCT em texto livre e lista nomeada de benefícios ficam para a Fatia 5) Passo 5 do cadastro (folga dominical, CCT, almoço, lanche, provisões, 12x36, VT, benefícios, encargos avançados) e alternadores de regime e provisões no Diagnóstico
+- [x] T028 [S3] Diagnóstico: tabela de componentes, custo por colaborador, barras empilhadas direto x indireto; revisão visual e roteiro 3
 
 ## Fatia 4: Plantão e feriados
 

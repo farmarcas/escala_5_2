@@ -59,6 +59,14 @@ export function RulesStep({ draft, errors, onChange }: Props) {
           onChange={(e) => set({ provisions: e.target.checked })}
         />
       </div>
+      <div className="sm:col-span-2">
+        <Checkbox
+          label="Indenizar o intervalo na 12x36"
+          description="Na 12x36 o intervalo não gozado é pago com 50% de acréscimo."
+          checked={rules.indemnifyBreak}
+          onChange={(e) => set({ indemnifyBreak: e.target.checked })}
+        />
+      </div>
       <NumberField
         label="Passagens por dia (vale-transporte)"
         value={rules.transport.tripsPerDay}

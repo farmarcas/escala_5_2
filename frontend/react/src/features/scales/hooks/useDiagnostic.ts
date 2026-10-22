@@ -8,12 +8,16 @@ type State =
   | { status: 'ready'; diagnostic: Diagnostic };
 
 // Diagnóstico de uma loja salva. Quem usa troca a `key` da tela para recalcular depois de editar.
-export function useDiagnostic(storeId: string) {
+export type DiagnosticOptions = { regime: 'simples' | 'lucro_presumido_real'; provisions: boolean };
+
+export function useDiagnostic(storeId: string, options: DiagnosticOptions) {
   const [state, setState] = useState<State>({ status: 'loading' });
 
   useEffect(() => {
     let isCurrent = true;
-    apiFetch<{ diagnostic: Diagnostic }>(`/scales/stores/${storeId}/diagnostic`)
+    apiFetch<{ diagnostic: Diagnostic }>(
+      `/scales/stores/${storeId}/diagnostic?regime=${options.regime}&provisions=${options.provisions}`,
+    )
       .then((response) => {
         if (isCurrent) setState({ status: 'ready', diagnostic: response.diagnostic });
       })
@@ -23,7 +27,7 @@ export function useDiagnostic(storeId: string) {
     return () => {
       isCurrent = false;
     };
-  }, [storeId]);
+  }, [storeId, options.regime, options.provisions]);
 
   return state;
 }

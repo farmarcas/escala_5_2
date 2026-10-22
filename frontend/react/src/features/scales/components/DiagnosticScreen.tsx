@@ -7,12 +7,17 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { FormMessage } from '@/features/auth/components/FormMessage';
 import { formatBRL, formatInt, formatPercent } from '@/lib/formatPtBr';
+import { StackedBar } from '@/components/ui/StackedBar';
 import { useDiagnostic } from '../hooks/useDiagnostic';
+import { CostComponents } from './CostComponents';
+import { PerPersonCosts } from './PerPersonCosts';
 import { SCENARIO_LABEL, type ScaleStore, type ScenarioKey } from '../types';
 
 export function DiagnosticScreen({ store }: { store: ScaleStore }) {
-  const state = useDiagnostic(store.id);
   const [scenario, setScenario] = useState<ScenarioKey>('5x2_42');
+  const [regime, setRegime] = useState(store.taxRegime);
+  const [provisions, setProvisions] = useState(store.rules.provisions);
+  const state = useDiagnostic(store.id, { regime, provisions });
 
   if (state.status === 'loading') {
     return (
@@ -48,6 +53,27 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
             { value: '5x2_40', label: '5x2 · 40h' },
           ]}
           onValueChange={setScenario}
+        />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-4">
+        <SegmentedControl
+          label="Regime tributário"
+          value={regime}
+          options={[
+            { value: 'simples', label: 'Simples' },
+            { value: 'lucro_presumido_real', label: 'Presumido/Real' },
+          ]}
+          onValueChange={setRegime}
+        />
+        <SegmentedControl
+          label="Provisões"
+          value={provisions ? 'com' : 'sem'}
+          options={[
+            { value: 'com', label: 'Com provisões' },
+            { value: 'sem', label: 'Sem provisões' },
+          ]}
+          onValueChange={(v) => setProvisions(v === 'com')}
         />
       </div>
 
@@ -138,7 +164,7 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
       </section>
 
       <section className="border-border bg-background rounded-lg border p-5">
-        <h3 className="mb-3 font-bold">Custo mensal da folha</h3>
+        <h3 className="mb-3 font-bold">Custo direto e indireto</h3>
         <BarCompare
           format={formatBRL}
           bars={[
@@ -146,18 +172,50 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
             { label: `Nova escala (${label})`, value: pay.total, className: 'bg-primary' },
           ]}
         />
-        <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+        <div className="mt-5 grid gap-5 sm:grid-cols-2">
           <div>
-            <dt className="text-muted-foreground text-xs">Direto: salários e adicionais</dt>
-            <dd className="font-bold tabular-nums">{formatBRL(pay.direct)}</dd>
+            <p className="mb-2 text-sm font-medium">Hoje</p>
+            <StackedBar
+              format={formatBRL}
+              parts={[
+                { label: 'Direto', value: d.payroll.today.direct, className: 'bg-rp-500' },
+                { label: 'Indireto', value: d.payroll.today.indirect, className: 'bg-da-500' },
+              ]}
+            />
           </div>
           <div>
-            <dt className="text-muted-foreground text-xs">
-              Indireto: provisões, encargos e benefícios
-            </dt>
-            <dd className="font-bold tabular-nums">{formatBRL(pay.indirect)}</dd>
+            <p className="mb-2 text-sm font-medium">Nova escala ({label})</p>
+            <StackedBar
+              format={formatBRL}
+              parts={[
+                { label: 'Direto', value: pay.direct, className: 'bg-rp-500' },
+                { label: 'Indireto', value: pay.indirect, className: 'bg-da-500' },
+              ]}
+            />
           </div>
-        </dl>
+        </div>
+        <p className="text-muted-foreground mt-3 text-xs">
+          Direto: salários e adicionais. Indireto: provisões, encargos e benefícios.
+        </p>
+      </section>
+
+      <section className="border-border bg-background rounded-lg border p-5">
+        <h3 className="mb-3 font-bold">Componentes da folha</h3>
+        <CostComponents
+          today={d.payroll.today}
+          next={pay}
+          nextLabel={`Nova escala (${label})`}
+          regime={d.payroll.taxRegime}
+        />
+      </section>
+
+      <section className="border-border bg-background rounded-lg border p-5">
+        <h3 className="font-bold">Custo por colaborador</h3>
+        <p className="text-muted-foreground mb-3 text-sm">
+          A partir do salário de registro informado, na nova escala. Adicionais variam com o turno;
+          o valor é a média da função.
+        </p>
+        <PerPersonCosts rows={pay.perPerson} />
       </section>
 
       {d.notes.map((note) => (

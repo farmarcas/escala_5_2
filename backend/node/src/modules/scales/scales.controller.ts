@@ -6,6 +6,7 @@ import { addDays, mondayOf } from './engine/time.js';
 import { defaultStore } from './scales.defaults.js';
 import type {
   bodyRequestSchema,
+  diagnosticRequestSchema,
   idRequestSchema,
   rosterRequestSchema,
   updateRequestSchema,
@@ -62,7 +63,13 @@ export const makeScalesController = (service: ScalesService, today: () => string
   },
 
   async diagnostic(_req: Request, res: Response) {
-    const { params } = readValidated<z.infer<typeof idRequestSchema>>(res);
-    res.json({ diagnostic: await service.diagnostic(getPrincipal(res).groupId, params.id) });
+    const { params, query } = readValidated<z.infer<typeof diagnosticRequestSchema>>(res);
+    const overrides = {
+      ...(query.regime && { taxRegime: query.regime }),
+      ...(query.provisions && { provisions: query.provisions === 'true' }),
+    };
+    res.json({
+      diagnostic: await service.diagnostic(getPrincipal(res).groupId, params.id, overrides),
+    });
   },
 });

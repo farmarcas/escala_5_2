@@ -24,10 +24,17 @@ export const DEFAULT_COST_SETTINGS: CostSettings = {
   benefits: 0,
 };
 
+// Adicionais mensais por pessoa, calculados a partir da escala (noturno, plantão, feriado, intervalo).
+export type Additions = {
+  night?: number;
+  overtime?: number;
+  holidayDouble?: number;
+  indemnifiedBreak?: number;
+};
+
 export type PersonCostInput = {
   salary: number;
-  // Adicionais mensais além do periculoso (noturno, horas extras etc.), somados ao salário nos encargos.
-  extras?: number;
+  additions?: Additions;
   motorcycle?: boolean;
   daysPerWeek: number;
 };
@@ -35,13 +42,22 @@ export type PersonCostInput = {
 export type PersonCost = {
   salary: number;
   hazard: number;
+  night: number;
+  overtime: number;
+  // Reflexo no descanso semanal remunerado sobre noturno e horas extras (1/6).
+  dsr: number;
+  holidayDouble: number;
+  indemnifiedBreak: number;
+  // Soma de todos os adicionais além da periculosidade.
   extras: number;
-  // 13º e férias + 1/3 provisionados.
+  thirteenth: number;
+  vacation: number;
   provisionsAmount: number;
   fgts: number;
   fgtsFine: number;
   inss: number;
   transportEmployer: number;
+  otherBenefits: number;
   benefits: number;
   direct: number;
   indirect: number;
@@ -50,9 +66,16 @@ export type PersonCost = {
 
 export function personCost(input: PersonCostInput, settings: CostSettings): PersonCost {
   const hazard = input.motorcycle ? input.salary * PAY.hazardPay : 0;
-  const extras = input.extras ?? 0;
+  const night = input.additions?.night ?? 0;
+  const overtime = input.additions?.overtime ?? 0;
+  const holidayDouble = input.additions?.holidayDouble ?? 0;
+  const indemnifiedBreak = input.additions?.indemnifiedBreak ?? 0;
+  const dsr = (night + overtime) / 6;
+  const extras = night + overtime + dsr + holidayDouble + indemnifiedBreak;
   const base = input.salary + hazard + extras;
-  const provisionsAmount = settings.provisions ? base * (CHARGES.thirteenth + CHARGES.vacation) : 0;
+  const thirteenth = settings.provisions ? base * CHARGES.thirteenth : 0;
+  const vacation = settings.provisions ? base * CHARGES.vacation : 0;
+  const provisionsAmount = thirteenth + vacation;
   const chargeBase = base + provisionsAmount;
   const fgts = chargeBase * CHARGES.fgts;
   const fgtsFine = settings.provisions ? fgts * CHARGES.fgtsFine : 0;
@@ -73,12 +96,20 @@ export function personCost(input: PersonCostInput, settings: CostSettings): Pers
   return {
     salary: input.salary,
     hazard,
+    night,
+    overtime,
+    dsr,
+    holidayDouble,
+    indemnifiedBreak,
     extras,
+    thirteenth,
+    vacation,
     provisionsAmount,
     fgts,
     fgtsFine,
     inss,
     transportEmployer,
+    otherBenefits: settings.benefits,
     benefits,
     direct,
     indirect,
@@ -88,25 +119,76 @@ export function personCost(input: PersonCostInput, settings: CostSettings): Pers
 
 export type PayrollLine = PersonCostInput & { people: number };
 
+export type Components = {
+  salary: number;
+  hazard: number;
+  holidayDouble: number;
+  night: number;
+  overtime: number;
+  dsr: number;
+  indemnifiedBreak: number;
+  thirteenth: number;
+  vacation: number;
+  fgts: number;
+  fgtsFine: number;
+  inss: number;
+  transport: number;
+  otherBenefits: number;
+};
+
 export type Payroll = {
   direct: number;
   indirect: number;
   total: number;
   people: number;
+  components: Components;
 };
+
+const emptyComponents = (): Components => ({
+  salary: 0,
+  hazard: 0,
+  holidayDouble: 0,
+  night: 0,
+  overtime: 0,
+  dsr: 0,
+  indemnifiedBreak: 0,
+  thirteenth: 0,
+  vacation: 0,
+  fgts: 0,
+  fgtsFine: 0,
+  inss: 0,
+  transport: 0,
+  otherBenefits: 0,
+});
 
 export function payroll(lines: readonly PayrollLine[], settings: CostSettings): Payroll {
   let direct = 0;
   let indirect = 0;
   let people = 0;
+  const c = emptyComponents();
   for (const line of lines) {
     if (line.people <= 0) continue;
-    const c = personCost(line, settings);
-    direct += c.direct * line.people;
-    indirect += c.indirect * line.people;
-    people += line.people;
+    const p = personCost(line, settings);
+    const n = line.people;
+    direct += p.direct * n;
+    indirect += p.indirect * n;
+    people += n;
+    c.salary += p.salary * n;
+    c.hazard += p.hazard * n;
+    c.holidayDouble += p.holidayDouble * n;
+    c.night += p.night * n;
+    c.overtime += p.overtime * n;
+    c.dsr += p.dsr * n;
+    c.indemnifiedBreak += p.indemnifiedBreak * n;
+    c.thirteenth += p.thirteenth * n;
+    c.vacation += p.vacation * n;
+    c.fgts += p.fgts * n;
+    c.fgtsFine += p.fgtsFine * n;
+    c.inss += p.inss * n;
+    c.transport += p.transportEmployer * n;
+    c.otherBenefits += p.otherBenefits * n;
   }
-  return { direct, indirect, total: direct + indirect, people };
+  return { direct, indirect, total: direct + indirect, people, components: c };
 }
 
 export type PayrollComparison = {

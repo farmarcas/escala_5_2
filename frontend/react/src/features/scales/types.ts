@@ -45,6 +45,7 @@ export type ScaleStoreDraft = {
     lunchMinutes: number;
     snackMinutes: number;
     provisions: boolean;
+    indemnifyBreak: boolean;
     rat: number;
     thirdParty: number;
     transport: { tripsPerDay: number; fare: number };
@@ -76,6 +77,41 @@ export type DiagnosticRow = {
   reinforcement: Record<ScenarioKey, number>;
 };
 
+export type Components = {
+  salary: number;
+  hazard: number;
+  holidayDouble: number;
+  night: number;
+  overtime: number;
+  dsr: number;
+  indemnifiedBreak: number;
+  thirteenth: number;
+  vacation: number;
+  fgts: number;
+  fgtsFine: number;
+  inss: number;
+  transport: number;
+  otherBenefits: number;
+};
+
+export type PayrollSummary = {
+  direct: number;
+  indirect: number;
+  total: number;
+  components: Components;
+};
+
+export type PersonCostRow = {
+  key: RoleName;
+  label: string;
+  salary: number;
+  additions: number;
+  provisions: number;
+  charges: number;
+  benefits: number;
+  total: number;
+};
+
 export type Diagnostic = {
   rows: DiagnosticRow[];
   totals: {
@@ -84,16 +120,16 @@ export type Diagnostic = {
     hire: Record<ScenarioKey, number>;
   };
   payroll: {
-    today: { direct: number; indirect: number; total: number };
+    taxRegime: 'simples' | 'lucro_presumido_real';
+    provisions: boolean;
+    today: PayrollSummary;
     scenarios: Record<
       ScenarioKey,
-      {
-        direct: number;
-        indirect: number;
-        total: number;
+      PayrollSummary & {
         monthlyDifference: number;
         yearlyDifference: number;
         percent: number;
+        perPerson: PersonCostRow[];
       }
     >;
   };

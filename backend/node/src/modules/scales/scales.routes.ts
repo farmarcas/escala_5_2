@@ -4,6 +4,7 @@ import { makeScalesController } from './scales.controller.js';
 import { scalesRepository } from './scales.repository.js';
 import {
   bodyRequestSchema,
+  diagnosticRequestSchema,
   idRequestSchema,
   listRequestSchema,
   rosterRequestSchema,
@@ -29,7 +30,7 @@ export const scalesRouter = (
   router.delete('/stores/:id', validate(idRequestSchema), controller.remove);
   router.post('/stores/:id/duplicate', validate(idRequestSchema), controller.duplicate);
   router.get('/stores/:id/roster', validate(rosterRequestSchema), controller.roster);
-  router.get('/stores/:id/diagnostic', validate(idRequestSchema), controller.diagnostic);
+  router.get('/stores/:id/diagnostic', validate(diagnosticRequestSchema), controller.diagnostic);
 
   return router;
 };

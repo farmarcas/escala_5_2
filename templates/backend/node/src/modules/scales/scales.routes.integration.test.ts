@@ -49,6 +49,12 @@ describe('scales routes', () => {
     const diag = await agent.get(`/api/v1/scales/stores/${id}/diagnostic`);
     expect(diag.status).toBe(200);
     expect(diag.body.diagnostic.totals.hire['5x2_42']).toBeGreaterThan(0);
+    const presumido = await agent.get(
+      `/api/v1/scales/stores/${id}/diagnostic?regime=lucro_presumido_real&provisions=false`,
+    );
+    expect(presumido.body.diagnostic.payroll.taxRegime).toBe('lucro_presumido_real');
+    expect(presumido.body.diagnostic.payroll.provisions).toBe(false);
+    expect((await agent.get(`/api/v1/scales/stores/${id}/diagnostic?regime=x`)).status).toBe(400);
 
     const started = Date.now();
     const roster = await agent.get(`/api/v1/scales/stores/${id}/roster?scenario=5x2_42`);

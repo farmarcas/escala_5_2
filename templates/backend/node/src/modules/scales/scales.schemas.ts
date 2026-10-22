@@ -51,6 +51,8 @@ export const rulesSchema = z
     lunchMinutes: z.number().int().min(30).max(120),
     snackMinutes: z.number().int().min(0).max(30),
     provisions: z.boolean(),
+    // Na 12x36 o intervalo não gozado é pago com 50% de acréscimo.
+    indemnifyBreak: z.boolean().default(true),
     rat: z.number().min(0).max(0.06),
     thirdParty: z.number().min(0).max(0.1),
     transport: z
@@ -155,6 +157,16 @@ export const listRequestSchema = z.object({
   body: emptyObject,
   params: emptyObject,
   query: emptyObject,
+});
+export const diagnosticRequestSchema = z.object({
+  body: emptyObject,
+  params: idParams,
+  query: z
+    .object({
+      regime: z.enum(['simples', 'lucro_presumido_real']).optional(),
+      provisions: z.enum(['true', 'false']).optional(),
+    })
+    .strict(),
 });
 export const idRequestSchema = z.object({
   body: emptyObject,

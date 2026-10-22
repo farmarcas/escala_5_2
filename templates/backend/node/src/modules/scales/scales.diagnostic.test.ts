@@ -40,4 +40,63 @@ describe('diagnose', () => {
     expect(caixa.hire['5x2_42']).toBe(0);
     expect(caixa.reinforcement['5x2_42']).toBe(9 - caixa.need['5x2_42']);
   });
+
+  it('os componentes somam o custo direto e o indireto', () => {
+    const c = result.payroll.scenarios['5x2_42'];
+    const k = c.components;
+    expect(
+      k.salary + k.hazard + k.night + k.overtime + k.dsr + k.holidayDouble + k.indemnifiedBreak,
+    ).toBeCloseTo(c.direct, 4);
+    expect(
+      k.thirteenth + k.vacation + k.fgts + k.fgtsFine + k.inss + k.transport + k.otherBenefits,
+    ).toBeCloseTo(c.indirect, 4);
+    expect(k.hazard).toBeGreaterThan(0);
+  });
+
+  it('trocar o regime para Presumido/Real cria INSS patronal; sem provisões some 13º e férias', () => {
+    const base = { ...defaultStore('2026-12-14'), name: 'Centro', city: 'Varginha', state: 'MG' };
+    const simples = diagnose(base).payroll.scenarios['5x2_42'].components;
+    const presumido = diagnose(base, { taxRegime: 'lucro_presumido_real' }).payroll.scenarios[
+      '5x2_42'
+    ].components;
+    const semProvisoes = diagnose(base, { provisions: false }).payroll.scenarios['5x2_42']
+      .components;
+    expect(simples.inss).toBe(0);
+    expect(presumido.inss).toBeGreaterThan(0);
+    expect(semProvisoes.thirteenth + semProvisoes.vacation + semProvisoes.fgtsFine).toBe(0);
+  });
+
+  it('loja 24 horas gera adicional noturno; loja diurna não', () => {
+    const base = { ...defaultStore('2026-12-14'), name: 'Centro', city: 'Varginha', state: 'MG' };
+    const day = diagnose(base).payroll.scenarios['5x2_42'].components.night;
+    const night = diagnose({ ...base, hours: { ...base.hours, always24h: true } }).payroll
+      .scenarios['5x2_42'].components.night;
+    expect(day).toBe(0);
+    expect(night).toBeGreaterThan(0);
+  });
+
+  it('intervalo indenizado só existe para função em 12x36 e com a regra ligada', () => {
+    const base = { ...defaultStore('2026-12-14'), name: 'Centro', city: 'Varginha', state: 'MG' };
+    const twelve = {
+      ...base,
+      roles: base.roles.map((r) =>
+        r.role === 'caixa' ? { ...r, scaleType: 'doze_x_trinta_e_seis' as const } : r,
+      ),
+    };
+    expect(diagnose(base).payroll.scenarios['5x2_42'].components.indemnifiedBreak).toBe(0);
+    expect(
+      diagnose(twelve).payroll.scenarios['5x2_42'].components.indemnifiedBreak,
+    ).toBeGreaterThan(0);
+    const off = { ...twelve, rules: { ...twelve.rules, indemnifyBreak: false } };
+    expect(diagnose(off).payroll.scenarios['5x2_42'].components.indemnifiedBreak).toBe(0);
+  });
+
+  it('o custo por colaborador soma as partes', () => {
+    for (const row of result.payroll.scenarios['5x2_42'].perPerson) {
+      expect(row.salary + row.additions + row.provisions + row.charges + row.benefits).toBeCloseTo(
+        row.total,
+        4,
+      );
+    }
+  });
 });

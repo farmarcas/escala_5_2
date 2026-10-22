@@ -35,7 +35,8 @@ const toRecord = (row: DbStore): ScaleStoreRecord => {
     scaleStartDate: row.scaleStartDate.toISOString().slice(0, 10),
     taxRegime: row.taxRegime,
     hours: config.hours,
-    rules: config.rules,
+    // Lojas gravadas antes do campo existir: o padrão é indenizar.
+    rules: { ...config.rules, indemnifyBreak: config.rules.indemnifyBreak ?? true },
     roles: row.roles.map(toRole),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,

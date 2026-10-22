@@ -31,6 +31,7 @@ export function defaultStore(scaleStartDate: string): ScaleStoreInput {
       lunchMinutes: 60,
       snackMinutes: 15,
       provisions: true,
+      indemnifyBreak: true,
       rat: 0.02,
       thirdParty: 0.058,
       transport: { tripsPerDay: 2, fare: 4.5 },

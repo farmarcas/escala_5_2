@@ -1,7 +1,17 @@
 import { buildWeekHours, type StoreHoursInput } from './engine/coverage.js';
-import { comparePayroll, payroll, type CostSettings, type PayrollLine } from './engine/costs.js';
-import { SCENARIOS, type ScenarioId } from './engine/rules.js';
-import { rosterWithMinimumPeople } from './engine/roster.js';
+import {
+  comparePayroll,
+  payroll,
+  personCost,
+  type Additions,
+  type Components,
+  type CostSettings,
+  type PayrollLine,
+  type TaxRegime,
+} from './engine/costs.js';
+import { hourlyRate, nightAdditionMonthly, nightMinutes } from './engine/night.js';
+import { PAY, SCENARIOS, SCHEDULE, type ScenarioId } from './engine/rules.js';
+import { rosterWithMinimumPeople, type Roster } from './engine/roster.js';
 import { requiredPeople } from './engine/staffing.js';
 import type { ScaleRoleInput, ScaleStoreInput } from './scales.schemas.js';
 
@@ -36,30 +46,54 @@ export type DiagnosticRow = {
   reinforcement: Record<NewScenario, number>;
 };
 
+export type PersonCostRow = {
+  key: string;
+  label: string;
+  salary: number;
+  additions: number;
+  provisions: number;
+  charges: number;
+  benefits: number;
+  total: number;
+};
+
+export type PayrollSummary = {
+  direct: number;
+  indirect: number;
+  total: number;
+  components: Components;
+};
+
 export type Diagnostic = {
   rows: DiagnosticRow[];
   totals: { today: number; need: Record<ScenarioId, number>; hire: Record<NewScenario, number> };
   payroll: {
-    today: { direct: number; indirect: number; total: number };
+    taxRegime: TaxRegime;
+    provisions: boolean;
+    today: PayrollSummary;
     scenarios: Record<
       NewScenario,
-      {
-        direct: number;
-        indirect: number;
-        total: number;
+      PayrollSummary & {
         monthlyDifference: number;
         yearlyDifference: number;
         percent: number;
+        perPerson: PersonCostRow[];
       }
     >;
   };
   notes: string[];
 };
 
-export function costSettingsOf(store: ScaleStoreInput): CostSettings {
+// Mudanças de regime e provisões que o painel simula sem gravar a loja.
+export type DiagnosticOverrides = { taxRegime?: TaxRegime; provisions?: boolean };
+
+export function costSettingsOf(
+  store: ScaleStoreInput,
+  overrides: DiagnosticOverrides = {},
+): CostSettings {
   return {
-    taxRegime: store.taxRegime,
-    provisions: store.rules.provisions,
+    taxRegime: overrides.taxRegime ?? store.taxRegime,
+    provisions: overrides.provisions ?? store.rules.provisions,
     rat: store.rules.rat,
     thirdParty: store.rules.thirdParty,
     transport: store.rules.transport,
@@ -67,14 +101,23 @@ export function costSettingsOf(store: ScaleStoreInput): CostSettings {
   };
 }
 
+type GroupScenario = {
+  need: number;
+  roster: Roster;
+  // Médias por pessoa paga (o dono farmacêutico fica de fora).
+  nightMinutesPerWeek: number;
+  shiftsPerMonth: number;
+};
+
 // Pessoas necessárias: parte da fórmula de dimensionamento e sobe até a escala de 4 semanas fechar de verdade.
-export function neededPeople(store: ScaleStoreInput, lead: ScaleRoleInput, id: ScenarioId): number {
+function planGroup(store: ScaleStoreInput, lead: ScaleRoleInput, id: ScenarioId): GroupScenario {
   const week = buildWeekHours(store.hours as StoreHoursInput);
   const options = { lunchMinutes: store.rules.lunchMinutes, sundayRule: store.rules.sundayRule };
   const formula = requiredPeople({ ...lead, extraPostsPerWeek: 0 }, week, SCENARIOS[id], options);
-  if (!formula.ok) return 0;
-  if (formula.people === 0) return 0;
-  return rosterWithMinimumPeople(
+  const start = formula.ok ? formula.people : 0;
+  const empty: Roster = { ok: true, people: [], unfilled: [] };
+  if (start === 0) return { need: 0, roster: empty, nightMinutesPerWeek: 0, shiftsPerMonth: 0 };
+  const result = rosterWithMinimumPeople(
     {
       role: lead,
       week,
@@ -84,27 +127,70 @@ export function neededPeople(store: ScaleStoreInput, lead: ScaleRoleInput, id: S
       sundayRule: store.rules.sundayRule,
       hasOwner: lead.ownerIsPharmacist,
     },
-    formula.people,
-  ).count;
+    start,
+  );
+  const paid = result.people.filter((p) => !p.isOwner);
+  let night = 0;
+  let shifts = 0;
+  for (const p of paid) {
+    for (const cell of p.days) {
+      if (!cell) continue;
+      shifts += 1;
+      night += nightMinutes(cell, cell.lunch);
+    }
+  }
+  const n = Math.max(paid.length, 1);
+  return {
+    need: result.count,
+    roster: result,
+    nightMinutesPerWeek: night / n / SCHEDULE.weeks,
+    shiftsPerMonth: (shifts / n / SCHEDULE.weeks) * PAY.weeksPerMonth,
+  };
 }
 
-export function diagnose(store: ScaleStoreInput): Diagnostic {
-  const settings = costSettingsOf(store);
+// Adicionais mensais de uma pessoa da função, vindos da escala (noturno e intervalo indenizado na 12x36).
+function additionsFor(
+  store: ScaleStoreInput,
+  role: ScaleRoleInput,
+  scenario: ScenarioId,
+  plan: GroupScenario,
+): Additions {
+  const rate = hourlyRate(role.monthlySalary, SCENARIOS[scenario].weeklyHours);
+  const additions: Additions = {
+    night: nightAdditionMonthly(rate, plan.nightMinutesPerWeek),
+  };
+  if (role.scaleType === 'doze_x_trinta_e_seis' && store.rules.indemnifyBreak) {
+    additions.indemnifiedBreak = rate * PAY.indemnifiedBreakPremium * plan.shiftsPerMonth;
+  }
+  return additions;
+}
+
+const summarize = (p: ReturnType<typeof payroll>): PayrollSummary => ({
+  direct: p.direct,
+  indirect: p.indirect,
+  total: p.total,
+  components: p.components,
+});
+
+export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides = {}): Diagnostic {
+  const settings = costSettingsOf(store, overrides);
   const active = store.roles.filter((r) => r.enabled);
 
   const rows: DiagnosticRow[] = [];
   const todayLines: PayrollLine[] = [];
   const nextLines: Record<NewScenario, PayrollLine[]> = { '5x2_42': [], '5x2_40': [] };
-  const notes: string[] = [];
+  const perPerson: Record<NewScenario, PersonCostRow[]> = { '5x2_42': [], '5x2_40': [] };
 
   for (const group of GROUPS) {
     const members = active.filter((r) => group.roles.includes(r.role));
     if (members.length === 0) continue;
     // A cobertura da função vem do primeiro membro com mínimo no salão (gerente e subgerente dividem o posto).
     const lead = members.find((r) => r.minInHall > 0) ?? members[0]!;
+    const plans = {} as Record<ScenarioId, GroupScenario>;
     const need = {} as Record<ScenarioId, number>;
     for (const id of Object.keys(SCENARIOS) as ScenarioId[]) {
-      need[id] = neededPeople(store, lead, id);
+      plans[id] = planGroup(store, lead, id);
+      need[id] = plans[id].need;
     }
     const today = members.reduce((n, r) => n + r.headcount, 0);
     const avgSalary =
@@ -118,6 +204,7 @@ export function diagnose(store: ScaleStoreInput): Diagnostic {
         people: r.headcount,
         motorcycle: r.motorcycle,
         daysPerWeek: SCENARIOS['6x1_44'].daysPerWeek,
+        additions: additionsFor(store, r, '6x1_44', plans['6x1_44']),
       });
     }
     const hire = {} as DiagnosticRow['hire'];
@@ -127,14 +214,36 @@ export function diagnose(store: ScaleStoreInput): Diagnostic {
       reinforcement[id] = Math.max(0, today - need[id]);
       const days = SCENARIOS[id].daysPerWeek;
       for (const r of members) {
+        const additions = additionsFor(store, r, id, plans[id]);
         nextLines[id].push({
           salary: r.monthlySalary,
           people: r.headcount,
           motorcycle: r.motorcycle,
           daysPerWeek: days,
+          additions,
+        });
+        const c = personCost(
+          { salary: r.monthlySalary, motorcycle: r.motorcycle, daysPerWeek: days, additions },
+          settings,
+        );
+        perPerson[id].push({
+          key: r.role,
+          label: r.role,
+          salary: c.salary,
+          additions: c.hazard + c.extras,
+          provisions: c.provisionsAmount,
+          charges: c.fgts + c.fgtsFine + c.inss,
+          benefits: c.benefits,
+          total: c.total,
         });
       }
-      nextLines[id].push({ salary: avgSalary, people: hire[id], motorcycle, daysPerWeek: days });
+      nextLines[id].push({
+        salary: avgSalary,
+        people: hire[id],
+        motorcycle,
+        daysPerWeek: days,
+        additions: additionsFor(store, { ...lead, monthlySalary: avgSalary }, id, plans[id]),
+      });
     }
     rows.push({
       key: group.key,
@@ -154,18 +263,14 @@ export function diagnose(store: ScaleStoreInput): Diagnostic {
     const next = payroll(nextLines[id], settings);
     const cmp = comparePayroll(todayPayroll, next);
     scenarios[id] = {
-      direct: next.direct,
-      indirect: next.indirect,
-      total: next.total,
+      ...summarize(next),
       monthlyDifference: cmp.monthlyDifference,
       yearlyDifference: cmp.yearlyDifference,
       percent: cmp.percent,
+      perPerson: perPerson[id],
     };
   }
 
-  notes.push(
-    'Nesta versão a folha inclui salários, periculosidade, provisões, encargos e benefícios; adicionais de plantão e feriados entram nas próximas etapas.',
-  );
   return {
     rows,
     totals: {
@@ -178,13 +283,13 @@ export function diagnose(store: ScaleStoreInput): Diagnostic {
       hire: { '5x2_42': sum((r) => r.hire['5x2_42']), '5x2_40': sum((r) => r.hire['5x2_40']) },
     },
     payroll: {
-      today: {
-        direct: todayPayroll.direct,
-        indirect: todayPayroll.indirect,
-        total: todayPayroll.total,
-      },
+      taxRegime: settings.taxRegime,
+      provisions: settings.provisions,
+      today: summarize(todayPayroll),
       scenarios,
     },
-    notes,
+    notes: [
+      'Plantão noturno, feriados trabalhados e horas extras entram na próxima etapa; hoje o custo inclui salários, periculosidade, adicional noturno da escala, intervalo indenizado (12x36), provisões, encargos e benefícios.',
+    ],
   };
 }

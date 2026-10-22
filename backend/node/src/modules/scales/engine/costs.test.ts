@@ -63,3 +63,54 @@ describe('costs', () => {
     expect(comparePayroll(payroll([], presumido), next).percent).toBe(0);
   });
 });
+
+describe('costs: adicionais', () => {
+  it('reflexo no DSR é 1/6 de noturno e horas extras (conferido com a referência: 844 → 141)', () => {
+    const c = personCost(
+      { salary: 2000, daysPerWeek: 5, additions: { night: 241, overtime: 603 } },
+      presumido,
+    );
+    expect(c.dsr).toBeCloseTo((241 + 603) / 6, 5);
+    expect(c.dsr).toBeCloseTo(140.67, 2);
+  });
+
+  it('adicionais entram na base de 13º, férias, FGTS e INSS e no custo direto', () => {
+    const plain = personCost({ salary: 2000, daysPerWeek: 5 }, presumido);
+    const withExtras = personCost(
+      { salary: 2000, daysPerWeek: 5, additions: { holidayDouble: 100, indemnifiedBreak: 50 } },
+      presumido,
+    );
+    expect(withExtras.direct - plain.direct).toBeCloseTo(150, 5);
+    expect(withExtras.fgts).toBeGreaterThan(plain.fgts);
+    expect(withExtras.thirteenth).toBeCloseTo((2000 + 150) / 12, 5);
+  });
+
+  it('13º e férias são separados e somam a provisão', () => {
+    const c = personCost({ salary: 1950, daysPerWeek: 5 }, presumido);
+    expect(c.thirteenth).toBeCloseTo(162.5, 2);
+    expect(c.vacation).toBeCloseTo(216.67, 2);
+    expect(c.thirteenth + c.vacation).toBeCloseTo(c.provisionsAmount, 8);
+  });
+
+  it('a folha soma os componentes de todas as pessoas', () => {
+    const p = payroll(
+      [
+        { salary: 1000, people: 2, daysPerWeek: 5 },
+        { salary: 1800, people: 1, daysPerWeek: 5, motorcycle: true },
+      ],
+      presumido,
+    );
+    expect(p.components.salary).toBe(3800);
+    expect(p.components.hazard).toBe(540);
+    expect(
+      p.components.fgts +
+        p.components.fgtsFine +
+        p.components.inss +
+        p.components.thirteenth +
+        p.components.vacation +
+        p.components.transport +
+        p.components.otherBenefits,
+    ).toBeCloseTo(p.indirect, 6);
+    expect(p.components.salary + p.components.hazard).toBeCloseTo(p.direct, 6);
+  });
+});
