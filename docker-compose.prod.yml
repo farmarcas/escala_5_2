@@ -32,12 +32,14 @@ services:
       COOKIE_SECURE: "true"
       # Coolify (proxy) + nginx da tela = 2 saltos até a API.
       TRUST_PROXY: ${TRUST_PROXY:-2}
-      MAIL_HOST: ${MAIL_HOST:?defina MAIL_HOST}
+      # E-mail: sem MAIL_USER/MAIL_PASSWORD a API só sobe com ALLOW_PRODUCTION_WITHOUT_MAIL=true.
+      ALLOW_PRODUCTION_WITHOUT_MAIL: ${ALLOW_PRODUCTION_WITHOUT_MAIL:-false}
+      MAIL_HOST: ${MAIL_HOST:-}
       MAIL_PORT: ${MAIL_PORT:-587}
-      MAIL_USER: ${MAIL_USER:?defina MAIL_USER}
-      MAIL_PASSWORD: ${MAIL_PASSWORD:?defina MAIL_PASSWORD}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       MAIL_SECURE: ${MAIL_SECURE:-}
-      MAIL_FROM: ${MAIL_FROM:?defina MAIL_FROM}
+      MAIL_FROM: ${MAIL_FROM:-Farmarcas <nao-responda@farmarcas.com.br>}
       ADMIN_API_KEY: ${ADMIN_API_KEY:?defina ADMIN_API_KEY}
       # Análise com IA (opcional): vazio deixa o assistente desligado.
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}

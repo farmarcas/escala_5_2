@@ -24,6 +24,15 @@ describe('productionProblems', () => {
     expect(p).toHaveLength(3);
   });
 
+  it('ALLOW_PRODUCTION_WITHOUT_MAIL libera só a falta de e-mail, nada além', () => {
+    const noMail = { ...prod, MAIL_USER: undefined, MAIL_PASSWORD: undefined };
+    expect(productionProblems(noMail)).toHaveLength(1);
+    expect(productionProblems({ ...noMail, ALLOW_PRODUCTION_WITHOUT_MAIL: true })).toEqual([]);
+    expect(
+      productionProblems({ ...noMail, ALLOW_PRODUCTION_WITHOUT_MAIL: true, COOKIE_SECURE: false }),
+    ).toHaveLength(1);
+  });
+
   it('fora de produção não exige nada', () => {
     expect(productionProblems({ ...prod, NODE_ENV: 'development', COOKIE_SECURE: false })).toEqual(
       [],

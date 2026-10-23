@@ -21,6 +21,11 @@ const envSchema = z.object({
       .transform((value) => value === 'true')
       .optional(),
   ),
+  // Interruptor temporário: permite subir em produção sem e-mail (cadastro e recuperação de senha não funcionam).
+  ALLOW_PRODUCTION_WITHOUT_MAIL: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
   // Quantos proxies existem na frente da API (0 = nenhum). Atrás do Coolify + nginx da tela são 2.
   TRUST_PROXY: z.coerce.number().int().min(0).default(0),
   APP_BASE_URL: z.string().url().default('http://localhost:3000'),
@@ -46,7 +51,11 @@ export const productionProblems = (e: z.infer<typeof envSchema>): string[] => {
   if (!e.COOKIE_SECURE) problems.push('COOKIE_SECURE precisa ser "true"');
   if (!e.APP_BASE_URL.startsWith('https://'))
     problems.push('APP_BASE_URL precisa começar com https://');
-  if (!e.MAIL_USER || !e.MAIL_PASSWORD) problems.push('MAIL_USER e MAIL_PASSWORD são obrigatórios');
+  if ((!e.MAIL_USER || !e.MAIL_PASSWORD) && !e.ALLOW_PRODUCTION_WITHOUT_MAIL) {
+    problems.push(
+      'MAIL_USER e MAIL_PASSWORD são obrigatórios (ou ALLOW_PRODUCTION_WITHOUT_MAIL=true)',
+    );
+  }
   return problems;
 };
 
@@ -54,6 +63,12 @@ const parsed = envSchema.parse(process.env);
 const problems = productionProblems(parsed);
 if (problems.length > 0) {
   throw new Error(`Configuração de produção insegura: ${problems.join('; ')}`);
+}
+
+if (parsed.NODE_ENV === 'production' && (!parsed.MAIL_USER || !parsed.MAIL_PASSWORD)) {
+  process.stderr.write(
+    'AVISO: API em produção sem e-mail configurado; cadastro e recuperação de senha não vão funcionar.\n',
+  );
 }
 
 export const env = parsed;

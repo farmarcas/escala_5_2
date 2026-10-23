@@ -30,7 +30,7 @@ docker exec <container-postgres> pg_dump -U radar radar | gzip > radar-$(date +%
 Guarde o arquivo fora do servidor. Se o backup automático for exigido, a alternativa é um PostgreSQL gerenciado do Coolify e a variável `DATABASE_URL` (exige ajustar o compose).
 
 ## A API recusa subir se...
-`COOKIE_SECURE` não for verdadeiro (o compose já fixa isso), `APP_BASE_URL` não começar com `https://` ou faltarem `MAIL_USER`/`MAIL_PASSWORD`. A mensagem aparece nos logs do serviço `api`.
+`COOKIE_SECURE` não for verdadeiro (o compose já fixa isso), `APP_BASE_URL` não começar com `https://` ou faltarem `MAIL_USER`/`MAIL_PASSWORD` (a menos que `ALLOW_PRODUCTION_WITHOUT_MAIL=true`, interruptor temporário: sem e-mail, ninguém consegue se cadastrar nem recuperar senha; desligue ao configurar o e-mail). A mensagem aparece nos logs do serviço `api`.
 
 ## Voltar a uma versão anterior
 Na aplicação: *Deployments* → escolha o deploy anterior → *Rollback* (ou *Redeploy* de um commit anterior). O volume do banco não é desfeito. Migrations já aplicadas **não** voltam sozinhas: mudanças de banco seguem o padrão expand/contract, então a versão antiga continua funcionando com o banco novo.
