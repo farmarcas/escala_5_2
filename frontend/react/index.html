@@ -9,6 +9,14 @@
       name="description"
       content="Veja, loja por loja, quantos colaboradores, quais turnos e qual custo a escala 5x2 vai exigir."
     />
+    <script>
+      // Aplica o tema escolhido antes de a página aparecer (evita piscar de claro para escuro).
+      try {
+        var t = localStorage.getItem('radar-escala-tema');
+        if (t === 'claro') document.documentElement.setAttribute('data-theme', 'light');
+        if (t === 'escuro') document.documentElement.setAttribute('data-theme', 'dark');
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

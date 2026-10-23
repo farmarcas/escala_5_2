@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Logo } from '@/components/brand/Logo';
+import { ThemeToggle } from './ThemeToggle';
 
 type HeaderProps = { actions?: ReactNode };
 
@@ -11,7 +12,10 @@ export function Header({ actions }: HeaderProps) {
         <Link to="/" aria-label="Radar Escala, página inicial" className="rounded-md">
           <Logo size={28} />
         </Link>
-        {actions}
+        <div className="flex items-center gap-1">
+          {actions}
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

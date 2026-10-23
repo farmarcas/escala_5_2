@@ -36,6 +36,6 @@ Telas novas do pacote: painel resumo de todas as lojas, mapa de cobertura por fa
 - Fontes: `@fontsource/rubik` e `@fontsource/ibm-plex-sans` (autohospedadas), como já era feito com a Inter.
 - Ícones: `lucide-react` (pacote público, só os ícones usados entram no pacote final).
 - O símbolo e os logotipos do pacote são copiados para `frontend/react/src/assets/brand/` e usados como componentes React (símbolo com tom claro, escuro, preto e branco, versão simplificada abaixo de 24 px).
-- Tema escuro: segue `prefers-color-scheme`; não há botão para trocar (pode entrar depois).
+- Tema escuro: segue `prefers-color-scheme` por padrão. Depois da implementação a pessoa pediu para poder testar o tema claro: o cabeçalho ganhou um botão que alterna automático, claro e escuro, e a escolha fica guardada só no navegador (`radar-escala-tema`).
 - Os textos de e-mail da conta passam a falar em Radar Escala; o remetente (`MAIL_FROM`) é configuração de ambiente e não muda por código.
 - Pontos do guia que dependem de telas ainda inexistentes (cobertura em porcentagem, horas extras por mês como destaque, seletor de loja com busca) não são criados aqui.

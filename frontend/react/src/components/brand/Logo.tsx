@@ -36,11 +36,15 @@ export function Logo({ tone = 'auto', size = 28, endorsed, className }: LogoProp
             <span className="text-muted-foreground text-[11px]">uma solução</span>
             {tone === 'auto' ? (
               <>
-                <img src={farmarcas} alt="Farmarcas" className="-ml-1.5 h-5 w-auto dark:hidden" />
+                <img
+                  src={farmarcas}
+                  alt="Farmarcas"
+                  className="brand-farmarcas-dark -ml-1.5 h-5 w-auto"
+                />
                 <img
                   src={farmarcasWhite}
                   alt="Farmarcas"
-                  className="-ml-1.5 hidden h-5 w-auto dark:block"
+                  className="brand-farmarcas-white -ml-1.5 h-5 w-auto"
                 />
               </>
             ) : (

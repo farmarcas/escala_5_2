@@ -160,9 +160,12 @@
   --shift-p-fg: #ffffff;
 }
 
-/* Tema escuro */
+/*
+  Tema escuro: automático pela preferência do aparelho, e fixável por `data-theme` na raiz
+  (claro ou escuro, escolhido pelo botão do cabeçalho e guardado no navegador).
+*/
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --background: #0e0d0c;
     --surface: #1b1a19;
     --surface-subtle: #252321;
@@ -205,6 +208,80 @@
     --shift-p-bg: #f3f1ef;
     --shift-p-fg: #050505;
   }
+}
+
+:root[data-theme='dark'] {
+  --background: #0e0d0c;
+  --surface: #1b1a19;
+  --surface-subtle: #252321;
+  --border: #343231;
+  --input: #4d4a48;
+  --fg: #f3f1ef;
+  --fg-2: #ccc8c3;
+  --fg-3: #a5a19b;
+  --action: #cc3d00;
+  --action-hover: #a83200;
+  --action-disabled: #5a2410;
+  --link: #ff7334;
+  --focus: #ff5510;
+  --halo: #5a2410;
+  --accent: #33190c;
+  --selected: #1a1f45;
+  --selected-fg: #9aa7f4;
+
+  --positive: #5ccb8a;
+  --positive-bg: #12301f;
+  --attention: #f5b83d;
+  --attention-bg: #33260a;
+  --critical: #ff8a7e;
+  --critical-bg: #3a1512;
+  --info: #9aa7f4;
+  --info-bg: #1a1f45;
+
+  --scenario-now: #9a958f;
+  --scenario-5x2: #7f8ff0;
+  --series-2: #b4bef8;
+
+  --shift-a-bg: #1a1f45;
+  --shift-a-fg: #9aa7f4;
+  --shift-b-bg: #252a5c;
+  --shift-b-fg: #b4bef8;
+  --shift-c-bg: #7f8ff0;
+  --shift-c-fg: #0e0d0c;
+  --shift-d-bg: #252321;
+  --shift-d-fg: #ccc8c3;
+  --shift-p-bg: #f3f1ef;
+  --shift-p-fg: #050505;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* Logotipo da Farmarcas: versão escura sobre fundo claro e branca sobre fundo escuro */
+.brand-farmarcas-white {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .brand-farmarcas-dark {
+    display: none;
+  }
+  :root:not([data-theme='light']) .brand-farmarcas-white {
+    display: block;
+  }
+}
+
+:root[data-theme='dark'] .brand-farmarcas-dark {
+  display: none;
+}
+
+:root[data-theme='dark'] .brand-farmarcas-white {
+  display: block;
 }
 
 @layer base {
