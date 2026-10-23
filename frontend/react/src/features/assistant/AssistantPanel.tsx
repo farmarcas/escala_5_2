@@ -58,7 +58,7 @@ export function AssistantPanel({ isOpen, onClose, context, snapshot }: Props) {
         ref={ref}
         onClose={close}
         aria-labelledby="assistant-title"
-        className="bg-surface text-foreground border-border fixed inset-y-0 right-0 m-0 flex h-dvh max-h-dvh w-full max-w-none flex-col border-l p-0 shadow-xl backdrop:bg-black/50 sm:w-[34rem]"
+        className="bg-surface text-foreground border-border fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-dvh w-full max-w-none flex-col border-l open:flex p-0 shadow-xl backdrop:bg-black/50 sm:w-[34rem]"
       >
         <header className="border-border flex items-start justify-between gap-3 border-b p-4">
           <div>
