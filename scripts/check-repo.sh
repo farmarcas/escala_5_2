@@ -47,7 +47,7 @@ grep -E '^\s+- "[^"]*:[0-9]+"' docker-compose.yml | grep -v '127.0.0.1:' && fail
 
 # 5b. Compose e exemplo de produção: sem valor secreto (só nomes de variável)
 if [ -f .env.production.example ]; then
-  grep -E '^(DATABASE_URL|MAIL_USER|MAIL_PASSWORD|ADMIN_API_KEY|ANTHROPIC_API_KEY)=.+' .env.production.example && fail ".env.production.example com valor preenchido" || true
+  grep -E '^(MAIL_USER|MAIL_PASSWORD|ADMIN_API_KEY|ANTHROPIC_API_KEY)=.+' .env.production.example && fail ".env.production.example com valor preenchido" || true
 fi
 if [ -f docker-compose.prod.yml ]; then
   grep -E 'sk-ant-|postgresql://[^$]*:[^$@]+@' docker-compose.prod.yml && fail "docker-compose.prod.yml com segredo fixo" || true

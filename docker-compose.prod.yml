@@ -1,7 +1,24 @@
-# Produção (Coolify): só a tela (pública, com HTTPS do Coolify) e a API (interna).
-# O banco é o PostgreSQL gerenciado do Coolify, ligado por DATABASE_URL. Sem Mailpit, sem portas no host.
+# Produção (Coolify): tela (pública, com HTTPS do Coolify), API e banco, tudo neste arquivo.
+# O banco não publica porta: só a API o alcança, pela rede interna. Sem Mailpit.
 # Guia: infrastructure/docker/COOLIFY.md
 services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: radar
+      # Gerada pelo Coolify (variável mágica SERVICE_PASSWORD_*): nenhum segredo no Git.
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_POSTGRES}
+      POSTGRES_DB: radar
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C.UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U radar -d radar"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   api:
     build:
       context: ./backend/node
@@ -10,7 +27,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 4000
-      DATABASE_URL: ${DATABASE_URL:?defina DATABASE_URL}
+      DATABASE_URL: postgresql://radar:${SERVICE_PASSWORD_POSTGRES}@postgres:5432/radar
       APP_BASE_URL: ${APP_BASE_URL:?defina APP_BASE_URL (https://...)}
       COOKIE_SECURE: "true"
       # Coolify (proxy) + nginx da tela = 2 saltos até a API.
@@ -26,6 +43,9 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ASSISTANT_MODEL: ${ASSISTANT_MODEL:-claude-sonnet-5-5}
       ASSISTANT_EFFORT: ${ASSISTANT_EFFORT:-medium}
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/health/ready >/dev/null || exit 1"]
       interval: 10s
@@ -50,3 +70,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+
+volumes:
+  postgres_data:
