@@ -170,3 +170,18 @@ describe('análise com IA', () => {
     expect(requests[0]!.system[0]).toMatchObject({ cache_control: { type: 'ephemeral' } });
   });
 });
+
+describe('números que a pessoa deu', () => {
+  it('horário da loja e número digitado no pedido não são tratados como inventados', async () => {
+    const closing = Number(store.hours.standard.end.slice(0, 2));
+    const { events } = await run(
+      [
+        { tools: [{ name: 'ler_diagnostico', input: {} }] },
+        { text: `A loja fecha às ${closing}h e você perguntou sobre 19h. Contratar ${hire}.` },
+      ],
+      { prompt: 'E se fechar às 19h?' },
+    );
+    expect(events.map((e) => e.type)).not.toContain('reset');
+    expect(events.at(-1)).toEqual({ type: 'done' });
+  });
+});

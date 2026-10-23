@@ -1,6 +1,6 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import type { ScaleStoreInput } from '../scales/scales.schemas.js';
-import { untraceableNumbers } from './assistant.numbers.js';
+import { collectNumbers, untraceableNumbers } from './assistant.numbers.js';
 import type { ModelClient, ModelUsage } from './assistant.model-client.js';
 import { SYSTEM_PROMPT } from './assistant.prompt.js';
 import { toModelStore } from './assistant.sanitize.js';
@@ -32,6 +32,7 @@ export type AnalysisInput = {
 export type AnalysisReport = {
   rounds: number;
   tools: string[];
+  toolErrors: string[];
   usage: ModelUsage;
   outcome: 'done' | 'refusal' | 'error' | 'aborted' | 'too_long';
 };
@@ -84,9 +85,20 @@ const textOf = (content: Anthropic.ContentBlock[]) =>
 export async function runAnalysis(input: AnalysisInput): Promise<AnalysisReport> {
   const toolbox = makeToolbox({ store: input.store, defaultScenario: input.scenario });
   const messages = buildMessages(input);
+  // Números que a própria pessoa deu (horários da loja e o que digitou) também são origem válida.
+  const modelStore = JSON.stringify(toModelStore(input.store));
+  for (const [, h, m] of modelStore.matchAll(/\b(\d{2}):(\d{2})\b/g)) {
+    toolbox.numbers.add(Number(h));
+    if (Number(m) > 0) toolbox.numbers.add(Number(m));
+  }
+  collectNumbers(
+    [input.prompt ?? '', ...(input.history ?? []).map((m) => m.content)],
+    toolbox.numbers,
+  );
   const report: AnalysisReport = {
     rounds: 0,
     tools: [],
+    toolErrors: [],
     usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
     outcome: 'done',
   };
@@ -135,6 +147,8 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisReport>
           report.tools.push(call.name);
           input.emit({ type: 'tool', label: TOOL_LABEL[call.name as ToolName] ?? 'Calculando' });
           const outcome = await toolbox.run(call.name, call.input);
+          if (outcome.isError)
+            report.toolErrors.push(`${call.name}: ${outcome.content.slice(0, 300)}`);
           if (outcome.scenario) input.emit({ type: 'scenario', scenario: outcome.scenario });
           results.push({
             type: 'tool_result',
@@ -156,7 +170,7 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisReport>
         messages.push({ role: 'assistant', content: turn.content });
         messages.push({
           role: 'user',
-          content: `Estes números da sua resposta não vieram das ferramentas: ${bad.join(', ')}. Refaça a resposta usando só números que as ferramentas devolveram nesta análise (chame as ferramentas que faltarem).`,
+          content: `Estes números da sua resposta não vieram das ferramentas: ${bad.join(', ')}. Refaça a resposta do começo, usando só números que as ferramentas devolveram nesta análise (chame as ferramentas que faltarem). Não mencione esta correção nem peça desculpas: escreva a resposta como se fosse a primeira.`,
         });
         continue;
       }

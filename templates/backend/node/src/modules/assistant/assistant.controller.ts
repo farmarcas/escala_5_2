@@ -26,7 +26,12 @@ export const makeAssistantController = ({ scales, model }: Deps) => ({
     }
     const { body } = readValidated<z.infer<typeof analyzeRequestSchema>>(res);
     const principal = getPrincipal(res);
-    const base = await scales.getById(principal.groupId, body.storeId);
+    const {
+      id: _id,
+      createdAt: _c,
+      updatedAt: _u,
+      ...base
+    } = await scales.getById(principal.groupId, body.storeId);
     const store = {
       ...base,
       ...(body.regime && { taxRegime: body.regime }),
@@ -67,6 +72,7 @@ export const makeAssistantController = ({ scales, model }: Deps) => ({
           outcome: report.outcome,
           rounds: report.rounds,
           tools: report.tools,
+          toolErrors: report.toolErrors,
           usage: report.usage,
           ms: Date.now() - started,
           promptChars: body.prompt?.length ?? 0,

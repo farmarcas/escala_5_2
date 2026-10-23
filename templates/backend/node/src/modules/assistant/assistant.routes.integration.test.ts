@@ -108,7 +108,16 @@ describe('/api/v1/assistant', () => {
     const { agent } = await signUpAndLogin(t, 'a@teste.com');
     const storeId = await createStore(agent);
     const before = await agent.get(`/api/v1/scales/stores/${storeId}`);
-    await agent.post('/api/v1/assistant/analyze').send({ storeId });
+    const run = await agent
+      .post('/api/v1/assistant/analyze')
+      .send({ storeId })
+      .buffer(true)
+      .parse((res, done) => {
+        let data = '';
+        res.on('data', (c) => (data += c));
+        res.on('end', () => done(null, data));
+      });
+    expect(events(run.body as string).map((e) => e.type)).toContain('scenario');
     const after = await agent.get(`/api/v1/scales/stores/${storeId}`);
     expect(after.body.store).toEqual(before.body.store);
   });

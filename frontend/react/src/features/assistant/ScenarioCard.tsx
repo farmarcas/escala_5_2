@@ -25,7 +25,7 @@ export function ScenarioCard({ scenario: s, storeId, onNavigate }: Props) {
           <li key={i}>{m.descricao}</li>
         ))}
       </ul>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3">
         <ComparisonKpi
           label="Pessoas na equipe"
           now={formatInt(s.antes.colaboradores)}

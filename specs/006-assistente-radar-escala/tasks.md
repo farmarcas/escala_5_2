@@ -31,7 +31,7 @@ description: "Tarefas: Análise com IA no diagnóstico"
 - [x] T015 `ScenarioCard.tsx`: cartão "Cenário simulado" com antes e depois (colaboradores, folha, alertas) usando `ComparisonKpi`, `formatDelta` e `formatSignedBRL`, e o atalho "Onde mudar"
 - [x] T016 `AssistantPanel.tsx`: painel lateral (tela cheia no celular), botão "Analisar minha loja", sugestões de pergunta, campo de texto, avisos fixos ("A IA só sugere. Você decide o que mudar." e a linha de privacidade), estados vazio, carregando e erro
 - [x] T017 Botão "Analisar com IA" no `DiagnosticScreen` (só se `enabled`), oferta "Falar com um consultor" dentro do painel reaproveitando o formulário existente
-- [ ] T018 Conferência visual (1440 e 390 px, claro e escuro) e sem rolagem lateral
+- [x] T018 Conferência visual (1440 e 390 px, claro e escuro) e sem rolagem lateral
 
 ## Bloco 4: Verificação
 - [x] T019 Tipos, lint, formatação e todos os testes (tela e API, integração incluída); `scripts/validar-frontend.sh`
