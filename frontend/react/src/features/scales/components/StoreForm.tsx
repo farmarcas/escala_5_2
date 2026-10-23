@@ -81,7 +81,7 @@ export function StoreForm({ initial, isNew, onSave }: Props) {
     identidade: <IdentityStep draft={draft} errors={errors} onChange={update} />,
     horario: <HoursStep draft={draft} errors={errors} onChange={update} />,
     plantao: <PlantaoStep draft={draft} errors={errors} onChange={update} />,
-    equipe: <TeamStep draft={draft} errors={errors} onChange={update} />,
+    equipe: <TeamStep draft={draft} errors={errors} preview={preview} onChange={update} />,
     regras: <RulesStep draft={draft} errors={errors} onChange={update} />,
     vendas: <SalesStep draft={draft} errors={errors} onChange={update} />,
     feriados: <HolidaysStep draft={draft} errors={errors} onChange={update} />,

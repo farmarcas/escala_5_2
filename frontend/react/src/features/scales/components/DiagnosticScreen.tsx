@@ -14,6 +14,7 @@ import { AlertsBlock } from './AlertsBlock';
 import { CostComponents } from './CostComponents';
 import { HolidaySummary } from './HolidaySummary';
 import { SalesSection } from './SalesSection';
+import { SplitSummary } from './SplitSummary';
 import { PerPersonCosts } from './PerPersonCosts';
 import { SCENARIO_LABEL, type ScaleStore, type ScenarioKey } from '../types';
 
@@ -58,6 +59,8 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
     result: {
       cenario: label,
       contratar: d.totals.hire[scenario],
+      faltaParaCobrirHoje: d.totals.fill,
+      efeitoDaNovaEscala: d.totals.effect[scenario],
       folhaHoje: Math.round(d.payroll.today.total),
       folhaNova: Math.round(pay.total),
       diferencaMensal: Math.round(pay.monthlyDifference),
@@ -120,6 +123,14 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
           <p className="text-secondary-foreground mt-1 text-sm">{hireText}.</p>
         ) : null}
       </section>
+
+      <SplitSummary
+        fill={d.totals.fill}
+        effect={d.totals.effect[scenario]}
+        fillMonthly={d.payroll.fillMonthly}
+        effectMonthly={pay.effectMonthly}
+        label={label}
+      />
 
       <div className="grid items-stretch gap-4 md:grid-cols-2">
         <ComparisonKpi

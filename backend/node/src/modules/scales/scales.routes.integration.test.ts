@@ -113,6 +113,8 @@ describe('scales routes', () => {
     expect(total.getCell(1).value).toBe('Total');
     expect(total.getCell(4).value).toBe(diag.body.diagnostic.totals.need['5x2_42']);
     expect(total.getCell(6).value).toBe(diag.body.diagnostic.totals.hire['5x2_42']);
+    expect(total.getCell(8).value).toBe(diag.body.diagnostic.totals.fill);
+    expect(total.getCell(9).value).toBe(diag.body.diagnostic.totals.effect['5x2_42']);
     const roster42 = wb.getWorksheet('Escala 5x2 42h')!;
     expect(roster42.rowCount).toBeGreaterThan(20);
     expect((await agent.get(`/api/v1/scales/stores/${id}/report.xlsx`)).status).toBe(200);

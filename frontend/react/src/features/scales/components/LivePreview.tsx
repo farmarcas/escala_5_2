@@ -1,5 +1,5 @@
 import { Skeleton } from '@/components/ui/Skeleton';
-import { formatBRL, formatInt } from '@/lib/formatPtBr';
+import { formatBRL, formatDelta, formatInt } from '@/lib/formatPtBr';
 import type { PreviewState } from '../hooks/usePreview';
 
 // Resumo que recalcula enquanto a pessoa preenche (aparece ao lado do cadastro).
@@ -32,6 +32,16 @@ export function LivePreview({ preview }: { preview: PreviewState }) {
             <dt className="text-muted-foreground text-xs">Pessoas a contratar na 5x2 · 42h</dt>
             <dd className="text-2xl font-bold tabular-nums">
               {formatInt(preview.diagnostic.totals.hire['5x2_42'])}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground text-xs">Falta para cobrir o horário hoje</dt>
+            <dd className="font-bold tabular-nums">{formatInt(preview.diagnostic.totals.fill)}</dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground text-xs">Efeito só da escala 5x2 · 42h</dt>
+            <dd className="font-bold tabular-nums">
+              {formatDelta(preview.diagnostic.totals.effect['5x2_42'])}
             </dd>
           </div>
           <div>

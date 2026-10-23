@@ -121,6 +121,9 @@ export type DiagnosticRow = {
   today: number;
   need: Record<'6x1_44' | ScenarioKey, number>;
   gap6x1: number;
+  // Falta para cobrir o horário hoje (6x1) e efeito só da nova escala; fill + effect = hire.
+  fill: number;
+  effect: Record<ScenarioKey, number>;
   hire: Record<ScenarioKey, number>;
   reinforcement: Record<ScenarioKey, number>;
   cost: { today: number } & Record<ScenarioKey, number>;
@@ -177,15 +180,20 @@ export type Diagnostic = {
     today: number;
     need: Record<'6x1_44' | ScenarioKey, number>;
     hire: Record<ScenarioKey, number>;
+    fill: number;
+    effect: Record<ScenarioKey, number>;
   };
   payroll: {
     taxRegime: 'simples' | 'lucro_presumido_real';
     provisions: boolean;
     today: PayrollSummary;
+    covered: PayrollSummary;
+    fillMonthly: number;
     scenarios: Record<
       ScenarioKey,
       PayrollSummary & {
         monthlyDifference: number;
+        effectMonthly: number;
         yearlyDifference: number;
         percent: number;
         perPerson: PersonCostRow[];

@@ -9,10 +9,11 @@ import { OPTIONAL_ROLES, ROLE_LABELS, type ScaleRole } from '../types';
 type Props = {
   role: ScaleRole;
   error?: string;
+  warning?: string | null;
   onChange: (patch: Partial<ScaleRole>) => void;
 };
 
-export function RoleCard({ role, error, onChange }: Props) {
+export function RoleCard({ role, error, warning, onChange }: Props) {
   const label = ROLE_LABELS[role.role];
   const optional = OPTIONAL_ROLES.includes(role.role);
   const isPharmacist = role.role === 'farmaceutico';
@@ -41,6 +42,12 @@ export function RoleCard({ role, error, onChange }: Props) {
       {error ? (
         <p role="alert" className="text-critical mt-2 text-xs">
           {error}
+        </p>
+      ) : null}
+
+      {warning ? (
+        <p role="note" className="bg-warning-background text-warning mt-3 rounded-md p-3 text-sm">
+          {warning}
         </p>
       ) : null}
 

@@ -18,6 +18,8 @@ Erros: `{ error: { code, message, details: [{ path, message }] } }`.
 | `GET /stores/:id/roster?scenario=` | Escala de 4 semanas (`6x1_44`, `5x2_42`, `5x2_40`) |
 | `GET /stores/:id/report.xlsx` | Relatório em Excel (mesmos números da tela) |
 
+O diagnóstico separa o "contratar" em duas partes que somam o total: `totals.fill` e `rows[].fill` (falta para cobrir o horário já na 6x1) e `totals.effect[cenário]` e `rows[].effect[cenário]` (efeito só da nova escala). Em reais: `payroll.fillMonthly`, `payroll.covered` (folha da loja coberta na 6x1) e `payroll.scenarios[cenário].effectMonthly` (soma = `monthlyDifference`).
+
 Corpo da loja: `name, city, state, scaleStartDate (segunda-feira), taxRegime, hours, rules, plantao, holidays, sales, roles[]`. Contratos completos nos schemas em `backend/node/src/modules/scales/scales.schemas.ts`.
 
 ## Análise com IA (`/api/v1/assistant`, spec 006)

@@ -61,7 +61,7 @@ export const toolDefinitions: Anthropic.Tool[] = [
   {
     name: 'ler_diagnostico',
     description:
-      'Lê o resultado da loja na nova escala: quadro por função (hoje, necessário na 6x1 e na 5x2, contratar), folha de hoje e da nova escala, principais custos, feriados, vendas e alertas. Comece sempre por esta ferramenta.',
+      'Lê o resultado da loja na nova escala: quadro por função (hoje, necessário na 6x1 e na 5x2, contratar, e quanto disso é falta para cobrir o horário hoje e quanto é efeito da nova escala), folha de hoje e da nova escala, principais custos, feriados, vendas e alertas. Comece sempre por esta ferramenta.',
     input_schema: schemaOf(inputs.ler_diagnostico),
   },
   {
@@ -175,6 +175,8 @@ export function makeToolbox(ctx: ToolContext) {
           necessarioNa6x1: r.need['6x1_44'],
           necessarioNaNovaEscala: r.need[scenario],
           contratar: r.hire[scenario],
+          faltaParaCobrirHoje: r.fill,
+          efeitoDaNovaEscala: r.effect[scenario],
           reforco: r.reinforcement[scenario],
           folhaHoje: money(r.cost.today),
           folhaNaNovaEscala: money(r.cost[scenario]),
@@ -183,12 +185,16 @@ export function makeToolbox(ctx: ToolContext) {
           colaboradoresHoje: d.totals.today,
           necessarioNaNovaEscala: d.totals.today + d.totals.hire[scenario],
           contratar: d.totals.hire[scenario],
+          faltaParaCobrirHoje: d.totals.fill,
+          efeitoDaNovaEscala: d.totals.effect[scenario],
         },
         folha: {
           hoje: money(d.payroll.today.total),
           novaEscala: money(pay.total),
           diferencaPorMes: money(pay.monthlyDifference),
           diferencaPorAno: money(pay.yearlyDifference),
+          faltaParaCobrirHojePorMes: money(d.payroll.fillMonthly),
+          efeitoDaNovaEscalaPorMes: money(pay.effectMonthly),
           percentual: pct(pay.percent),
           diretoNaNovaEscala: money(pay.direct),
           indiretoNaNovaEscala: money(pay.indirect),

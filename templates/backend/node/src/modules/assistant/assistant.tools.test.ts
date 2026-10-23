@@ -23,6 +23,10 @@ describe('ferramentas da IA', () => {
     expect(data.totais.contratar).toBe(d.totals.hire['5x2_42']);
     expect(data.folha.novaEscala).toBe(Math.round(d.payroll.scenarios['5x2_42'].total));
     expect(data.funcoes.length).toBe(d.rows.length);
+    expect(data.totais.faltaParaCobrirHoje + data.totais.efeitoDaNovaEscala).toBe(
+      data.totais.contratar,
+    );
+    expect(data.totais.faltaParaCobrirHoje).toBe(d.totals.fill);
   });
 
   it('ler_diagnostico aceita regime e provisões sem gravar', async () => {

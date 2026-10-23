@@ -1,14 +1,16 @@
-import type { FieldErrors } from '../hooks/usePreview';
+import type { FieldErrors, PreviewState } from '../hooks/usePreview';
+import { roleWarning } from '../roleWarning';
 import type { ScaleRole, ScaleStoreDraft } from '../types';
 import { RoleCard } from './RoleCard';
 
 type Props = {
   draft: ScaleStoreDraft;
   errors: FieldErrors;
+  preview: PreviewState;
   onChange: (patch: Partial<ScaleStoreDraft>) => void;
 };
 
-export function TeamStep({ draft, errors, onChange }: Props) {
+export function TeamStep({ draft, errors, preview, onChange }: Props) {
   const setRole = (index: number, patch: Partial<ScaleRole>) =>
     onChange({ roles: draft.roles.map((r, i) => (i === index ? { ...r, ...patch } : r)) });
 
@@ -23,6 +25,7 @@ export function TeamStep({ draft, errors, onChange }: Props) {
           key={role.role}
           role={role}
           error={errors[`roles.${index}`] ?? errors[`roles.${index}.headcount`]}
+          warning={preview.status === 'ready' ? roleWarning(role, preview.diagnostic.rows) : null}
           onChange={(patch) => setRole(index, patch)}
         />
       ))}

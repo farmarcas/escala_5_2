@@ -51,6 +51,9 @@ export type DiagnosticRow = {
   need: Record<ScenarioId, number>;
   // Hoje x necessário na 6x1: positivo = falta gente.
   gap6x1: number;
+  // Pessoas que faltam para cobrir o horário já na escala atual (6x1) e o que a nova escala acrescenta (ou tira).
+  fill: number;
+  effect: Record<NewScenario, number>;
   hire: Record<NewScenario, number>;
   reinforcement: Record<NewScenario, number>;
   // Folha mensal da função: hoje e em cada cenário.
@@ -92,15 +95,27 @@ export type HolidaySummary = {
 
 export type Diagnostic = {
   rows: DiagnosticRow[];
-  totals: { today: number; need: Record<ScenarioId, number>; hire: Record<NewScenario, number> };
+  totals: {
+    today: number;
+    need: Record<ScenarioId, number>;
+    hire: Record<NewScenario, number>;
+    // hire = fill + effect: falta para cobrir o horário hoje (6x1) e efeito só da nova escala.
+    fill: number;
+    effect: Record<NewScenario, number>;
+  };
   payroll: {
     taxRegime: TaxRegime;
     provisions: boolean;
     today: PayrollSummary;
+    // Folha da loja já coberta na escala atual (6x1) e quanto custa chegar lá.
+    covered: PayrollSummary;
+    fillMonthly: number;
     scenarios: Record<
       NewScenario,
       PayrollSummary & {
         monthlyDifference: number;
+        // Parte da diferença que vem só da nova escala (folha do cenário menos a loja coberta na 6x1).
+        effectMonthly: number;
         yearlyDifference: number;
         percent: number;
         perPerson: PersonCostRow[];
@@ -375,6 +390,7 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
 
   const rows: DiagnosticRow[] = [];
   const todayLines: PayrollLine[] = [];
+  const fillLines: PayrollLine[] = [];
   const nextLines: Record<NewScenario, PayrollLine[]> = { '5x2_42': [], '5x2_40': [] };
   const perPerson: Record<NewScenario, PersonCostRow[]> = { '5x2_42': [], '5x2_40': [] };
   const allPlans: Record<NewScenario, GroupScenario[]> = { '5x2_42': [], '5x2_40': [] };
@@ -411,10 +427,25 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
         additions: additionsFor(store, r, '6x1_44', plans['6x1_44']),
       });
     }
+    const fill = Math.max(0, need['6x1_44'] - today);
+    fillLines.push({
+      salary: avgSalary,
+      people: fill,
+      motorcycle,
+      daysPerWeek: daysPerWeekOf(lead, '6x1_44'),
+      additions: additionsFor(
+        store,
+        { ...lead, monthlySalary: avgSalary },
+        '6x1_44',
+        plans['6x1_44'],
+      ),
+    });
     const hire = {} as DiagnosticRow['hire'];
+    const effect = {} as DiagnosticRow['effect'];
     const reinforcement = {} as DiagnosticRow['reinforcement'];
     for (const id of NEW_SCENARIOS) {
       hire[id] = Math.max(0, need[id] - today);
+      effect[id] = hire[id] - fill;
       reinforcement[id] = Math.max(0, today - need[id]);
       const days = SCENARIOS[id].daysPerWeek;
       for (const r of members) {
@@ -456,6 +487,8 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
       today,
       need,
       gap6x1: need['6x1_44'] - today,
+      fill,
+      effect,
       hire,
       reinforcement,
       cost: {
@@ -469,6 +502,7 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
   const sum = (f: (row: DiagnosticRow) => number) => rows.reduce((n, row) => n + f(row), 0);
   for (const id of NEW_SCENARIOS) nextLines[id].push(...intermittentLines(store, id));
   const todayPayroll = payroll(todayLines, settings);
+  const coveredPayroll = payroll([...todayLines, ...fillLines], settings);
   const scenarios = {} as Diagnostic['payroll']['scenarios'];
   for (const id of NEW_SCENARIOS) {
     const next = payroll(nextLines[id], settings);
@@ -476,6 +510,7 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
     scenarios[id] = {
       ...summarize(next),
       monthlyDifference: cmp.monthlyDifference,
+      effectMonthly: next.total - coveredPayroll.total,
       yearlyDifference: cmp.yearlyDifference,
       percent: cmp.percent,
       perPerson: perPerson[id],
@@ -492,11 +527,18 @@ export function diagnose(store: ScaleStoreInput, overrides: DiagnosticOverrides 
         '5x2_40': sum((r) => r.need['5x2_40']),
       },
       hire: { '5x2_42': sum((r) => r.hire['5x2_42']), '5x2_40': sum((r) => r.hire['5x2_40']) },
+      fill: sum((r) => r.fill),
+      effect: {
+        '5x2_42': sum((r) => r.effect['5x2_42']),
+        '5x2_40': sum((r) => r.effect['5x2_40']),
+      },
     },
     payroll: {
       taxRegime: settings.taxRegime,
       provisions: settings.provisions,
       today: summarize(todayPayroll),
+      covered: summarize(coveredPayroll),
+      fillMonthly: coveredPayroll.total - todayPayroll.total,
       scenarios,
     },
     holidays: {

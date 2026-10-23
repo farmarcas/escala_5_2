@@ -175,3 +175,47 @@ describe('diagnose', () => {
     );
   });
 });
+
+describe('falta hoje x efeito da nova escala', () => {
+  const scenarios = ['5x2_42', '5x2_40'] as const;
+  const withHeadcount = (headcount: (role: string) => number) => {
+    const base = defaultStore('2026-12-14');
+    return { ...base, roles: base.roles.map((r) => ({ ...r, headcount: headcount(r.role) })) };
+  };
+
+  it('as duas partes somam o total, em pessoas e em reais', () => {
+    for (const make of [
+      () => defaultStore('2026-12-14'),
+      () => withHeadcount(() => 1),
+      () => withHeadcount(() => 20),
+    ]) {
+      const d = diagnose(make());
+      for (const id of scenarios) {
+        expect(d.totals.fill + d.totals.effect[id]).toBe(d.totals.hire[id]);
+        expect(d.payroll.fillMonthly + d.payroll.scenarios[id].effectMonthly).toBeCloseTo(
+          d.payroll.scenarios[id].monthlyDifference,
+          2,
+        );
+        for (const r of d.rows) expect(r.fill + r.effect[id]).toBe(r.hire[id]);
+      }
+    }
+  });
+
+  it('loja pequena: quase tudo é falta para cobrir o horário hoje', () => {
+    const d = diagnose(withHeadcount((role) => (role === 'farmaceutico' ? 1 : 0)));
+    expect(d.totals.fill).toBeGreaterThan(0);
+    expect(Math.abs(d.totals.effect['5x2_42'])).toBeLessThan(d.totals.fill);
+    expect(d.payroll.fillMonthly).toBeGreaterThan(0);
+  });
+
+  it('loja que já cobre o horário na 6x1: falta hoje é zero e o efeito é o resultado atual', () => {
+    const d = diagnose(withHeadcount(() => 30));
+    expect(d.totals.fill).toBe(0);
+    expect(d.payroll.fillMonthly).toBe(0);
+    expect(d.payroll.covered.total).toBe(d.payroll.today.total);
+    expect(d.payroll.scenarios['5x2_42'].effectMonthly).toBeCloseTo(
+      d.payroll.scenarios['5x2_42'].monthlyDifference,
+      2,
+    );
+  });
+});

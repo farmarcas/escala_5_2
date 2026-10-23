@@ -65,6 +65,9 @@ function comparative(wb: ExcelJS.Workbook, store: ScaleStoreInput, d: Diagnostic
     'Necessário 5x2 · 40h',
     'Contratar 5x2 · 42h',
     'Contratar 5x2 · 40h',
+    'Falta hoje (6x1)',
+    'Efeito 5x2 · 42h',
+    'Efeito 5x2 · 40h',
   ]);
   header(sheet, 3);
   for (const r of d.rows) {
@@ -76,6 +79,9 @@ function comparative(wb: ExcelJS.Workbook, store: ScaleStoreInput, d: Diagnostic
       r.need['5x2_40'],
       r.hire['5x2_42'],
       r.hire['5x2_40'],
+      r.fill,
+      r.effect['5x2_42'],
+      r.effect['5x2_40'],
     ]);
   }
   const t = d.totals;
@@ -87,6 +93,9 @@ function comparative(wb: ExcelJS.Workbook, store: ScaleStoreInput, d: Diagnostic
     t.need['5x2_40'],
     t.hire['5x2_42'],
     t.hire['5x2_40'],
+    t.fill,
+    t.effect['5x2_42'],
+    t.effect['5x2_40'],
   ]);
   total.font = { bold: true };
 
@@ -125,6 +134,13 @@ function comparative(wb: ExcelJS.Workbook, store: ScaleStoreInput, d: Diagnostic
       0,
       d.payroll.scenarios['5x2_42'].monthlyDifference,
       d.payroll.scenarios['5x2_40'].monthlyDifference,
+    ],
+    ['  · para cobrir o horário hoje (6x1)', 0, d.payroll.fillMonthly, d.payroll.fillMonthly],
+    [
+      '  · efeito da nova escala',
+      0,
+      d.payroll.scenarios['5x2_42'].effectMonthly,
+      d.payroll.scenarios['5x2_40'].effectMonthly,
     ],
     [
       'Diferença por ano',
