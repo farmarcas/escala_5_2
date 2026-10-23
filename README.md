@@ -36,6 +36,40 @@ Para desligar sem perder os dados: `/parar-ambiente`.
 
 ---
 
+## 🧮 Radar Escala (Farmarcas)
+
+Mostra, por loja, quantas pessoas cada função precisa na escala 5x2 (42h e 40h), a escala de 4 semanas por pessoa, a folha mensal hoje e na nova escala (custos completos, plantão, feriados, vendas e CMV), alertas e um relatório em Excel. Só funciona com login. Especificação em [specs/004-painel-de-escalas](specs/004-painel-de-escalas/spec.md); a identidade visual (nome, cores, fontes, tema claro e escuro) está em [specs/005-identidade-radar-escala](specs/005-identidade-radar-escala/spec.md); o resultado é estimativa de planejamento, e as regras legais precisam ser validadas pelo jurídico e pela contabilidade antes de uso real.
+
+| Quero... | Onde |
+|---|---|
+| Criar conta e entrar | http://localhost:3000/cadastrar e http://localhost:3000/entrar |
+| Cadastrar lojas e ver o diagnóstico, a escala e as regras aplicadas | http://localhost:3000/painel |
+| Ver os **e-mails de teste** (confirmação de conta, recuperação de senha) | http://localhost:8025 (nada sai do computador) |
+| **Consultar os contatos** pedidos pelos usuários ("Falar com um consultor") | veja abaixo |
+
+As regras legais e os valores (jornadas, encargos, adicionais, feriados) ficam em `backend/node/src/modules/scales/engine/rules.ts` e `holidays.ts`, com a base legal de cada uma. Os testes dourados do caso de conferência estão em `engine/reference.golden.test.ts`, e as diferenças em relação à referência, em [calibration-observations.md](specs/004-painel-de-escalas/calibration-observations.md).
+
+**Consultar contatos (equipe da Farmarcas).** A consulta usa a chave `ADMIN_API_KEY` do `.env` (troque o valor de teste em produção):
+
+```bash
+# lista em JSON
+curl -H "x-admin-key: $ADMIN_API_KEY" "http://localhost:4000/api/v1/admin/contact-requests"
+# planilha CSV (abre direto no Excel)
+curl -H "x-admin-key: $ADMIN_API_KEY" "http://localhost:4000/api/v1/admin/contact-requests?format=csv" -o contatos.csv
+# anonimizar os dados pessoais de um contato (pedido do titular, LGPD)
+curl -X POST -H "x-admin-key: $ADMIN_API_KEY" "http://localhost:4000/api/v1/admin/contact-requests/<id>/anonymize"
+```
+
+**Antes de publicar fora do computador**, faltam decisões que não são de código: validar as regras legais e os valores com jurídico, contabilidade e RH, definir o servidor de e-mail (`MAIL_*`) e o remetente, revisar o texto da política de privacidade e escolher onde a aplicação vai rodar. Atrás de um proxy ou balanceador, configurar também o `trust proxy` e um limite de tentativas compartilhado (hoje em memória). O roteiro de validação está em [quickstart.md](specs/004-painel-de-escalas/quickstart.md).
+
+---
+
+### Análise com IA (opcional)
+
+No Diagnóstico, o botão **Analisar com IA** abre um painel em que a pessoa pede uma análise em palavras simples ou um cenário ("e se a loja fechar às 21h?"). A IA só sugere: não altera a loja, e os números vêm sempre do cálculo do Radar Escala.
+
+Para ligar: coloque `ANTHROPIC_API_KEY=...` no seu `.env` (nunca no Git nem em chat) e rode `docker compose up -d api`. Sem a chave, o botão não aparece e o resto funciona igual. Modelo e esforço: `ASSISTANT_MODEL` e `ASSISTANT_EFFORT`. Ao modelo vão só os números da loja, sem nome, cidade nem dados pessoais.
+
 ## 🧭 Como criar algo novo
 
 Toda aplicação ou funcionalidade nova passa pelo **Spec Kit**, na ordem abaixo. Você aprova cada etapa antes de a IA seguir.

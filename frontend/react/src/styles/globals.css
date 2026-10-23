@@ -1,0 +1,312 @@
+@import 'tailwindcss';
+@import '@fontsource/rubik/500.css';
+@import '@fontsource/rubik/600.css';
+@import '@fontsource/rubik/800.css';
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
+
+/*
+  Identidade visual Radar Escala (guia de identidade 1.0, outubro de 2026).
+  Dois níveis: a paleta da marca (valores fixos do guia) e os tokens por tema (claro e escuro), que mudam
+  conforme a preferência do aparelho. Os componentes só usam os tokens semânticos (bg-primary, text-foreground...):
+  cor crua não entra em componente. O laranja é a cor das ações e da marca e nunca entra em séries de dados.
+*/
+@theme {
+  /* Só as cores do guia: some a paleta padrão do Tailwind */
+  --color-red-*: initial;
+  --color-orange-*: initial;
+  --color-amber-*: initial;
+  --color-yellow-*: initial;
+  --color-lime-*: initial;
+  --color-green-*: initial;
+  --color-emerald-*: initial;
+  --color-teal-*: initial;
+  --color-sky-*: initial;
+  --color-cyan-*: initial;
+  --color-blue-*: initial;
+  --color-indigo-*: initial;
+  --color-violet-*: initial;
+  --color-purple-*: initial;
+  --color-fuchsia-*: initial;
+  --color-pink-*: initial;
+  --color-rose-*: initial;
+  --color-slate-*: initial;
+  --color-gray-*: initial;
+  --color-zinc-*: initial;
+  --color-neutral-*: initial;
+  --color-stone-*: initial;
+
+  --font-sans: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  --font-display: Rubik, 'IBM Plex Sans', sans-serif;
+
+  /* Paleta da marca */
+  --color-brand: #ff5510;
+  --color-orange-50: #fff2ec;
+  --color-orange-100: #ffdfd1;
+  --color-blue-100: #dde2f8;
+  --color-blue-turn: #3b4fc4;
+  --color-blue-700: #26338a;
+  --color-n-0: #ffffff;
+  --color-n-50: #faf9f8;
+  --color-n-100: #f3f1ef;
+  --color-n-200: #e5e2de;
+  --color-n-300: #ccc8c3;
+  --color-n-400: #a5a19b;
+  --color-n-500: #6b6763;
+  --color-n-600: #514e4b;
+  --color-n-700: #343231;
+  --color-n-800: #1b1a19;
+  --color-n-900: #050505;
+
+  /* Tokens semânticos (os valores vêm das variáveis do tema, definidas abaixo) */
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--fg);
+  --color-secondary-foreground: var(--fg-2);
+  --color-muted: var(--surface-subtle);
+  --color-muted-foreground: var(--fg-3);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--focus);
+  --color-halo: var(--halo);
+  --color-primary: var(--action);
+  --color-primary-hover: var(--action-hover);
+  --color-primary-active: var(--action-hover);
+  --color-primary-disabled: var(--action-disabled);
+  --color-primary-foreground: #ffffff;
+  --color-primary-strong: var(--link);
+  --color-accent: var(--accent);
+  --color-selected: var(--selected);
+  --color-selected-foreground: var(--selected-fg);
+  --color-destructive: var(--critical);
+  --color-destructive-foreground: #ffffff;
+  --color-critical: var(--critical);
+  --color-critical-bg: var(--critical-bg);
+  /* Botão de perigo: fundo fixo nos dois temas, texto branco */
+  --color-danger: #c0261b;
+  --color-danger-hover: #9d1f16;
+  --color-danger-disabled: #e9a29c;
+  --color-positive: var(--positive);
+  --color-positive-bg: var(--positive-bg);
+  --color-warning: var(--attention);
+  --color-warning-background: var(--attention-bg);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-scenario-now: var(--scenario-now);
+  --color-scenario-5x2: var(--scenario-5x2);
+  --color-series-2: var(--series-2);
+  --color-shift-a: var(--shift-a-bg);
+  --color-shift-a-fg: var(--shift-a-fg);
+  --color-shift-b: var(--shift-b-bg);
+  --color-shift-b-fg: var(--shift-b-fg);
+  --color-shift-c: var(--shift-c-bg);
+  --color-shift-c-fg: var(--shift-c-fg);
+  --color-shift-d: var(--shift-d-bg);
+  --color-shift-d-fg: var(--shift-d-fg);
+  --color-shift-plantao: var(--shift-p-bg);
+  --color-shift-plantao-fg: var(--shift-p-fg);
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+}
+
+/* Tema claro */
+:root {
+  color-scheme: light dark;
+  --background: #ffffff;
+  --surface: #ffffff;
+  --surface-subtle: #faf9f8;
+  --border: #e5e2de;
+  --input: #ccc8c3;
+  --fg: #050505;
+  --fg-2: #514e4b;
+  --fg-3: #6b6763;
+  --action: #cc3d00;
+  --action-hover: #a83200;
+  --action-disabled: #ffdfd1;
+  --link: #cc3d00;
+  --focus: #ff5510;
+  --halo: #ffdfd1;
+  --accent: #fff2ec;
+  --selected: #dde2f8;
+  --selected-fg: #26338a;
+
+  --positive: #0f7a41;
+  --positive-bg: #e3f3e9;
+  --attention: #8a5a00;
+  --attention-bg: #fef3dc;
+  --critical: #c0261b;
+  --critical-bg: #fbe6e4;
+  --info: #3046a8;
+  --info-bg: #eef0fc;
+
+  /* Cenários nos gráficos: atual em grafite, 5x2 em Azul Turno */
+  --scenario-now: #8a8580;
+  --scenario-5x2: #3b4fc4;
+  --series-2: #26338a;
+
+  /* Turnos da escala */
+  --shift-a-bg: #dde2f8;
+  --shift-a-fg: #26338a;
+  --shift-b-bg: #eef0fc;
+  --shift-b-fg: #3046a8;
+  --shift-c-bg: #26338a;
+  --shift-c-fg: #ffffff;
+  --shift-d-bg: #f3f1ef;
+  --shift-d-fg: #514e4b;
+  --shift-p-bg: #050505;
+  --shift-p-fg: #ffffff;
+}
+
+/*
+  Tema escuro: automático pela preferência do aparelho, e fixável por `data-theme` na raiz
+  (claro ou escuro, escolhido pelo botão do cabeçalho e guardado no navegador).
+*/
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --background: #0e0d0c;
+    --surface: #1b1a19;
+    --surface-subtle: #252321;
+    --border: #343231;
+    --input: #4d4a48;
+    --fg: #f3f1ef;
+    --fg-2: #ccc8c3;
+    --fg-3: #a5a19b;
+    --action: #cc3d00;
+    --action-hover: #a83200;
+    --action-disabled: #5a2410;
+    --link: #ff7334;
+    --focus: #ff5510;
+    --halo: #5a2410;
+    --accent: #33190c;
+    --selected: #1a1f45;
+    --selected-fg: #9aa7f4;
+
+    --positive: #5ccb8a;
+    --positive-bg: #12301f;
+    --attention: #f5b83d;
+    --attention-bg: #33260a;
+    --critical: #ff8a7e;
+    --critical-bg: #3a1512;
+    --info: #9aa7f4;
+    --info-bg: #1a1f45;
+
+    --scenario-now: #9a958f;
+    --scenario-5x2: #7f8ff0;
+    --series-2: #b4bef8;
+
+    --shift-a-bg: #1a1f45;
+    --shift-a-fg: #9aa7f4;
+    --shift-b-bg: #252a5c;
+    --shift-b-fg: #b4bef8;
+    --shift-c-bg: #7f8ff0;
+    --shift-c-fg: #0e0d0c;
+    --shift-d-bg: #252321;
+    --shift-d-fg: #ccc8c3;
+    --shift-p-bg: #f3f1ef;
+    --shift-p-fg: #050505;
+  }
+}
+
+:root[data-theme='dark'] {
+  --background: #0e0d0c;
+  --surface: #1b1a19;
+  --surface-subtle: #252321;
+  --border: #343231;
+  --input: #4d4a48;
+  --fg: #f3f1ef;
+  --fg-2: #ccc8c3;
+  --fg-3: #a5a19b;
+  --action: #cc3d00;
+  --action-hover: #a83200;
+  --action-disabled: #5a2410;
+  --link: #ff7334;
+  --focus: #ff5510;
+  --halo: #5a2410;
+  --accent: #33190c;
+  --selected: #1a1f45;
+  --selected-fg: #9aa7f4;
+
+  --positive: #5ccb8a;
+  --positive-bg: #12301f;
+  --attention: #f5b83d;
+  --attention-bg: #33260a;
+  --critical: #ff8a7e;
+  --critical-bg: #3a1512;
+  --info: #9aa7f4;
+  --info-bg: #1a1f45;
+
+  --scenario-now: #9a958f;
+  --scenario-5x2: #7f8ff0;
+  --series-2: #b4bef8;
+
+  --shift-a-bg: #1a1f45;
+  --shift-a-fg: #9aa7f4;
+  --shift-b-bg: #252a5c;
+  --shift-b-fg: #b4bef8;
+  --shift-c-bg: #7f8ff0;
+  --shift-c-fg: #0e0d0c;
+  --shift-d-bg: #252321;
+  --shift-d-fg: #ccc8c3;
+  --shift-p-bg: #f3f1ef;
+  --shift-p-fg: #050505;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* Logotipo da Farmarcas: versão escura sobre fundo claro e branca sobre fundo escuro */
+.brand-farmarcas-white {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .brand-farmarcas-dark {
+    display: none;
+  }
+  :root:not([data-theme='light']) .brand-farmarcas-white {
+    display: block;
+  }
+}
+
+:root[data-theme='dark'] .brand-farmarcas-dark {
+  display: none;
+}
+
+:root[data-theme='dark'] .brand-farmarcas-white {
+  display: block;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    /* Algarismos tabulares: números alinhados em colunas, 0 e 8 bem distintos. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+
+  /* Foco visível em tudo que se pode alcançar pelo teclado */
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  /* Seleção de texto na cor da marca */
+  ::selection {
+    background: var(--halo);
+  }
+}
