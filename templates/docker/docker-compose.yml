@@ -47,6 +47,10 @@ services:
       COOKIE_SECURE: "false"
       # Chave da equipe para consultar contatos. Troque no .env.
       ADMIN_API_KEY: ${ADMIN_API_KEY:?defina ADMIN_API_KEY no .env}
+      # Análise com IA (opcional): vazio deixa o assistente desligado.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ASSISTANT_MODEL: ${ASSISTANT_MODEL:-claude-sonnet-5-5}
+      ASSISTANT_EFFORT: ${ASSISTANT_EFFORT:-medium}
     ports:
       - "127.0.0.1:${API_PORT:-4000}:4000"
     volumes:

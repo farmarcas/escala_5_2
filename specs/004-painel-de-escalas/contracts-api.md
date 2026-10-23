@@ -19,3 +19,14 @@ Erros: `{ error: { code, message, details: [{ path, message }] } }`.
 | `GET /stores/:id/report.xlsx` | Relatório em Excel (mesmos números da tela) |
 
 Corpo da loja: `name, city, state, scaleStartDate (segunda-feira), taxRegime, hours, rules, plantao, holidays, sales, roles[]`. Contratos completos nos schemas em `backend/node/src/modules/scales/scales.schemas.ts`.
+
+## Análise com IA (`/api/v1/assistant`, spec 006)
+
+Login obrigatório. A IA só lê e calcula; não grava nada.
+
+| Rota | O que faz |
+| --- | --- |
+| `GET /status` | `{ enabled }`: `true` quando `ANTHROPIC_API_KEY` está configurada. Sem a chave o botão não aparece |
+| `POST /analyze` | Corpo: `storeId`, `scenario` (`5x2_42`/`5x2_40`), `regime?`, `provisions?`, `prompt?` (até 1.000 caracteres), `history?` (até 8 mensagens). Responde em fluxo (`text/event-stream`) com eventos `text`, `tool`, `scenario`, `reset`, `done`, `error`. 404 se a loja é de outro grupo, 429 no limite técnico por conta, 503 `ASSISTANT_DISABLED` sem chave |
+
+Privacidade: ao modelo vão só os números e regras da loja (sem nome, cidade, UF nem dados pessoais). O texto da conversa não é gravado nem entra no log (só metadados: resultado, voltas, ferramentas, uso, tempo).

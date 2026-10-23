@@ -12,6 +12,7 @@ import { makeAuthService } from './modules/auth/auth.service.js';
 import type { Mailer } from './modules/auth/auth.types.js';
 import { adminContactsRouter } from './modules/admin-contacts/admin-contacts.routes.js';
 import { contactsRouter } from './modules/contacts/contacts.routes.js';
+import { assistantRouter, type AssistantDeps } from './modules/assistant/assistant.routes.js';
 import { scalesRouter } from './modules/scales/scales.routes.js';
 import { makeSmtpMailer } from './shared/mailer.js';
 import { AttemptLimiter } from './shared/middlewares/rate-limit.js';
@@ -25,6 +26,7 @@ type AppDeps = {
   contactLimiter?: AttemptLimiter;
   // `undefined` explícito desliga a consulta de contatos; omitido usa ADMIN_API_KEY do ambiente.
   adminApiKey?: string | undefined;
+  assistant?: AssistantDeps;
 };
 
 export const createApp = (deps: AppDeps = {}) => {
@@ -66,6 +68,7 @@ export const createApp = (deps: AppDeps = {}) => {
   app.use('/api/v1/auth', authRouter(auth));
   app.use('/api/v1/groups', groupsRouter(auth));
   app.use('/api/v1/scales', scalesRouter(requireSession(auth)));
+  app.use('/api/v1/assistant', assistantRouter(requireSession(auth), deps.assistant));
   app.use('/api/v1/contact-requests', contactsRouter(requireSession(auth), deps.contactLimiter));
   app.use(
     '/api/v1/admin/contact-requests',

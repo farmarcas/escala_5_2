@@ -8,6 +8,7 @@ import { StatusPill } from '@/components/ui/StatusPill';
 import { FormMessage } from '@/features/auth/components/FormMessage';
 import { formatBRL, formatDelta, formatInt, formatSignedBRL } from '@/lib/formatPtBr';
 import { StackedBar } from '@/components/ui/StackedBar';
+import { AssistantPanel, useAssistantEnabled } from '@/features/assistant';
 import { useDiagnostic } from '../hooks/useDiagnostic';
 import { AlertsBlock } from './AlertsBlock';
 import { CostComponents } from './CostComponents';
@@ -20,6 +21,8 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
   const [scenario, setScenario] = useState<ScenarioKey>('5x2_42');
   const [regime, setRegime] = useState(store.taxRegime);
   const [provisions, setProvisions] = useState(store.rules.provisions);
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const assistantEnabled = useAssistantEnabled();
   const state = useDiagnostic(store.id, { regime, provisions });
 
   if (state.status === 'loading') {
@@ -70,6 +73,11 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-display text-2xl font-semibold">Resultado da escala 5x2</h2>
+        {assistantEnabled ? (
+          <Button variant="secondary" size="md" onClick={() => setAssistantOpen(true)}>
+            Analisar com IA
+          </Button>
+        ) : null}
         <SegmentedControl
           label="Cenário"
           value={scenario}
@@ -208,7 +216,7 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
         </p>
       </section>
 
-      <div className="grid items-start gap-6 2xl:grid-cols-2">
+      <div className="grid items-start gap-6 xl:grid-cols-2">
         {d.sales ? (
           <SalesSection
             today={d.sales.today}
@@ -303,6 +311,14 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
           Imprimir esta página
         </Button>
       </div>
+      {assistantEnabled ? (
+        <AssistantPanel
+          isOpen={assistantOpen}
+          onClose={() => setAssistantOpen(false)}
+          snapshot={snapshot}
+          context={{ storeId: store.id, scenario, regime, provisions }}
+        />
+      ) : null}
     </div>
   );
 }

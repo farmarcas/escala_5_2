@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { isStepId } from '@/features/assistant';
 import { Button } from '@/components/ui/Button';
 import { Stepper, type StepItem } from '@/components/ui/Stepper';
 import { FormMessage } from '@/features/auth/components/FormMessage';
@@ -38,7 +40,9 @@ type Props = {
 
 export function StoreForm({ initial, isNew, onSave }: Props) {
   const [draft, setDraft] = useState(initial);
-  const [step, setStep] = useState<StepId>('identidade');
+  const [params] = useSearchParams();
+  const requested = params.get('passo');
+  const [step, setStep] = useState<StepId>(isStepId(requested) ? requested : 'identidade');
   const [serverErrors, setServerErrors] = useState<FieldErrors>({});
   const preview = usePreview(draft);
   const save = useSubmit(async (d: ScaleStoreDraft) => {

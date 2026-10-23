@@ -64,6 +64,12 @@ curl -X POST -H "x-admin-key: $ADMIN_API_KEY" "http://localhost:4000/api/v1/admi
 
 ---
 
+### Análise com IA (opcional)
+
+No Diagnóstico, o botão **Analisar com IA** abre um painel em que a pessoa pede uma análise em palavras simples ou um cenário ("e se a loja fechar às 21h?"). A IA só sugere: não altera a loja, e os números vêm sempre do cálculo do Radar Escala.
+
+Para ligar: coloque `ANTHROPIC_API_KEY=...` no seu `.env` (nunca no Git nem em chat) e rode `docker compose up -d api`. Sem a chave, o botão não aparece e o resto funciona igual. Modelo e esforço: `ASSISTANT_MODEL` e `ASSISTANT_EFFORT`. Ao modelo vão só os números da loja, sem nome, cidade nem dados pessoais.
+
 ## 🧭 Como criar algo novo
 
 Toda aplicação ou funcionalidade nova passa pelo **Spec Kit**, na ordem abaixo. Você aprova cada etapa antes de a IA seguir.
