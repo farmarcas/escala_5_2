@@ -45,6 +45,15 @@ grep -q '^@AGENTS.md' CLAUDE.md || fail "CLAUDE.md deve importar @AGENTS.md"
 # 5. Porta publicada só em 127.0.0.1 e sem credencial fixa de banco no Compose
 grep -E '^\s+- "[^"]*:[0-9]+"' docker-compose.yml | grep -v '127.0.0.1:' && fail "porta publicada fora de 127.0.0.1 em docker-compose.yml" || true
 
+# 5b. Compose e exemplo de produção: sem valor secreto (só nomes de variável)
+if [ -f .env.production.example ]; then
+  grep -E '^(DATABASE_URL|MAIL_USER|MAIL_PASSWORD|ADMIN_API_KEY|ANTHROPIC_API_KEY)=.+' .env.production.example && fail ".env.production.example com valor preenchido" || true
+fi
+if [ -f docker-compose.prod.yml ]; then
+  grep -E 'sk-ant-|postgresql://[^$]*:[^$@]+@' docker-compose.prod.yml && fail "docker-compose.prod.yml com segredo fixo" || true
+  grep -E '^\s+- "[0-9]+:[0-9]+"' docker-compose.prod.yml && fail "docker-compose.prod.yml publica porta no servidor" || true
+fi
+
 # 6. Templates em dia
 sh scripts/sync-templates.sh --check || FAIL=1
 

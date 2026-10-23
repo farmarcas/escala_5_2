@@ -32,6 +32,8 @@ type AppDeps = {
 export const createApp = (deps: AppDeps = {}) => {
   const app = express();
   app.disable('x-powered-by');
+  // Atrás de proxies (Coolify, nginx) o IP real vem em X-Forwarded-For; sem proxy, ignora o cabeçalho.
+  app.set('trust proxy', env.TRUST_PROXY);
   app.use(express.json());
   app.use(requestId);
   app.use(

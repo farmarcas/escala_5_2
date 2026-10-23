@@ -141,3 +141,6 @@ Na dúvida, descreva o problema para a IA. Ela sabe diagnosticar o ambiente.
 ## 🤝 Contribuindo
 
 Antes de abrir PR, rode `scripts/check-repo.sh` (a CI roda o mesmo e sobe o ambiente de verdade). Quer ensinar um novo padrão? Adicione um guia e uma skill na pasta da tecnologia e registre no [AGENTS.md](AGENTS.md). Mudanças nas regras gerais passam pela [constituição](.specify/memory/constitution.md).
+
+## Publicar no Coolify
+Imagens de produção e `docker-compose.prod.yml` estão prontos. Passo a passo, variáveis, backup e como voltar versão: `infrastructure/docker/COOLIFY.md`.

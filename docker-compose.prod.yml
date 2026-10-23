@@ -1,0 +1,52 @@
+# Produção (Coolify): só a tela (pública, com HTTPS do Coolify) e a API (interna).
+# O banco é o PostgreSQL gerenciado do Coolify, ligado por DATABASE_URL. Sem Mailpit, sem portas no host.
+# Guia: infrastructure/docker/COOLIFY.md
+services:
+  api:
+    build:
+      context: ./backend/node
+      target: runtime
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: ${DATABASE_URL:?defina DATABASE_URL}
+      APP_BASE_URL: ${APP_BASE_URL:?defina APP_BASE_URL (https://...)}
+      COOKIE_SECURE: "true"
+      # Coolify (proxy) + nginx da tela = 2 saltos até a API.
+      TRUST_PROXY: ${TRUST_PROXY:-2}
+      MAIL_HOST: ${MAIL_HOST:?defina MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USER: ${MAIL_USER:?defina MAIL_USER}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:?defina MAIL_PASSWORD}
+      MAIL_SECURE: ${MAIL_SECURE:-}
+      MAIL_FROM: ${MAIL_FROM:?defina MAIL_FROM}
+      ADMIN_API_KEY: ${ADMIN_API_KEY:?defina ADMIN_API_KEY}
+      # Análise com IA (opcional): vazio deixa o assistente desligado.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ASSISTANT_MODEL: ${ASSISTANT_MODEL:-claude-sonnet-5-5}
+      ASSISTANT_EFFORT: ${ASSISTANT_EFFORT:-medium}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/health/ready >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+
+  web:
+    build:
+      context: ./frontend/react
+      target: runtime
+    restart: unless-stopped
+    environment:
+      API_UPSTREAM: http://api:4000
+    expose:
+      - "8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/nginx-health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
