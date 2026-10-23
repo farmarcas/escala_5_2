@@ -47,27 +47,26 @@ describe('caso completo da referência (Simples)', () => {
     expect(near(row.cost['5x2_42'], REFERENCE_SIMPLES.farmaceutico.cost[1], 0.02)).toBe(true);
   });
 
-  it('balconista na 5x2 · 42h: diferença conhecida de +1 pessoa (a escala gulosa não fecha com 8)', () => {
-    // Diferença explicada: com plantão e feriados com folga compensatória o gerador de escala não encontra
-    // arranjo com 8 pessoas (a referência encontra). Fica registrada; o resultado é conservador.
+  it('balconista: 8 pessoas na 5x2 · 42h e folha a até 1%; na 6x1 fica 1 abaixo (8 contra 9)', () => {
     const row = d.rows.find((r) => r.key === 'balconista')!;
-    expect(row.need['5x2_42']).toBe(REFERENCE_SIMPLES.balconista.need[1] + 1);
+    expect(row.need['5x2_42']).toBe(REFERENCE_SIMPLES.balconista.need[1]);
+    expect(near(row.cost['5x2_42'], REFERENCE_SIMPLES.balconista.cost[1], 0.01)).toBe(true);
+    // Diferença conhecida de −1 só na coluna "hoje", que não entra no custo da nova escala.
+    expect(row.need['6x1_44']).toBe(REFERENCE_SIMPLES.balconista.need[0] - 1);
   });
 
-  it('totais: folha de hoje a até 2% e da nova escala a até 3%; contratações a até 1', () => {
-    expect(near(d.payroll.today.total, REFERENCE_TOTALS_SIMPLES.today, 0.02)).toBe(true);
-    expect(near(d.payroll.scenarios['5x2_42'].total, REFERENCE_TOTALS_SIMPLES.next42, 0.03)).toBe(
+  it('totais: folha de hoje e da nova escala a até 0,5% e as 15 contratações', () => {
+    expect(near(d.payroll.today.total, REFERENCE_TOTALS_SIMPLES.today, 0.005)).toBe(true);
+    expect(near(d.payroll.scenarios['5x2_42'].total, REFERENCE_TOTALS_SIMPLES.next42, 0.005)).toBe(
       true,
     );
-    expect(Math.abs(d.totals.hire['5x2_42'] - REFERENCE_TOTALS_SIMPLES.hire42)).toBeLessThanOrEqual(
-      1,
-    );
+    expect(d.totals.hire['5x2_42']).toBe(REFERENCE_TOTALS_SIMPLES.hire42);
   });
 
-  it('Presumido/Real: folha de hoje e da nova escala a até 3% do PDF da referência', () => {
+  it('Presumido/Real: folha de hoje e da nova escala a até 1% do PDF da referência', () => {
     const p = diagnose(centroFullStore(), { taxRegime: 'lucro_presumido_real' });
-    expect(near(p.payroll.today.total, REFERENCE_TOTALS_PRESUMIDO.today, 0.03)).toBe(true);
-    expect(near(p.payroll.scenarios['5x2_42'].total, REFERENCE_TOTALS_PRESUMIDO.next42, 0.03)).toBe(
+    expect(near(p.payroll.today.total, REFERENCE_TOTALS_PRESUMIDO.today, 0.01)).toBe(true);
+    expect(near(p.payroll.scenarios['5x2_42'].total, REFERENCE_TOTALS_PRESUMIDO.next42, 0.01)).toBe(
       true,
     );
   });

@@ -69,6 +69,10 @@ export type RosterInput = {
   saveSundayPeople?: boolean;
   // Gira a ordem de desempate entre as pessoas (variação determinística para a escala fechar).
   tieOffset?: number;
+  // Máximo de dias seguidos de trabalho (padrão 6: o descanso semanal vem depois de, no máximo, 6 dias).
+  maxStreak?: number;
+  // Em feriado com folga compensatória, só os turnos obrigatórios (o apoio geraria mais uma folga cada).
+  lightHolidays?: boolean;
   events?: RosterEvents;
 };
 
@@ -325,7 +329,10 @@ export function buildRoster(input: RosterInput): Roster {
       const spareCapacity = () =>
         people.reduce((n, p) => n + Math.max(0, maxDays - p.weekOff - p.weekDays), 0);
       for (const shift of shifts) {
-        if (shift.soft && spareCapacity() - 1 < requiredAhead()) {
+        // Em feriado com folga compensatória, cada turno de apoio geraria mais uma folga: só entra o obrigatório.
+        const costsComp =
+          Boolean(input.lightHolidays) && isHoliday && events?.compensation !== 'dobro';
+        if (shift.soft && (costsComp || spareCapacity() - 1 < requiredAhead())) {
           droppedPosts.add(shift.post);
           continue;
         }
@@ -341,7 +348,7 @@ export function buildRoster(input: RosterInput): Roster {
               (SUNDAY - day) * MINUTES_PER_DAY + dayStart + sundayStart
           )
             return false;
-          if (p.streak >= 6) return false;
+          if (p.streak >= (input.maxStreak ?? 6)) return false;
           if (dayStart + shift.start - p.lastEndAbs < minRest) return false;
           if (day === SUNDAY && shift.kind !== 'plantao') {
             if (share === 0) return false;
@@ -458,22 +465,25 @@ export function rosterWithMinimumPeople(
   for (let extra = 0; extra <= limit; extra += 1) {
     const count = Math.max(start, 0) + extra;
     // Tenta, nesta ordem, variações do mesmo método até a escala fechar com esta equipe.
-    for (let tieOffset = 0; tieOffset < Math.max(count + owner, 1); tieOffset += 1) {
-      for (const [holdSunday, saveSundayPeople] of [
-        [true, false],
-        [false, true],
-        [false, false],
-      ] as const) {
-        for (const kindChangeCost of [KIND_CHANGE_COST, 0]) {
-          last = buildRoster({
-            ...input,
-            people: count + owner,
-            kindChangeCost,
-            holdSunday,
-            saveSundayPeople,
-            tieOffset,
-          });
-          if (last.ok) return { ...last, count };
+    for (const lightHolidays of [false, true]) {
+      for (let tieOffset = 0; tieOffset < Math.max(count + owner, 1); tieOffset += 1) {
+        for (const [holdSunday, saveSundayPeople] of [
+          [true, false],
+          [false, true],
+          [false, false],
+        ] as const) {
+          for (const kindChangeCost of [KIND_CHANGE_COST, 0]) {
+            last = buildRoster({
+              ...input,
+              people: count + owner,
+              kindChangeCost,
+              holdSunday,
+              saveSundayPeople,
+              tieOffset,
+              lightHolidays,
+            });
+            if (last.ok) return { ...last, count };
+          }
         }
       }
     }

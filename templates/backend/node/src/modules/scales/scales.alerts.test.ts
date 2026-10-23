@@ -69,4 +69,14 @@ describe('alertas', () => {
     };
     expect(ids(store)).toContain('meta-folha');
   });
+
+  it('plantão com poucos farmacêuticos hoje avisa que o custo de hoje está subestimado', () => {
+    const team = { ...base, plantao: { ...base.plantao, type: 'weekly' as const } };
+    expect(ids(team)).toContain('plantao-hoje-farmaceutico');
+    const enough = {
+      ...team,
+      roles: team.roles.map((r) => (r.role === 'farmaceutico' ? { ...r, headcount: 4 } : r)),
+    };
+    expect(ids(enough)).not.toContain('plantao-hoje-farmaceutico');
+  });
 });

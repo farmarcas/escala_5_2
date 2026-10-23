@@ -72,6 +72,17 @@ export function buildAlerts(store: ScaleStoreInput, diagnostic: Diagnostic): Ale
     );
   }
 
+  if (plantao.type !== 'none' && plantao.cover === 'team') {
+    const farm = store.roles.find((r) => r.role === 'farmaceutico');
+    if (farm && farm.headcount < 4) {
+      alerts.push({
+        id: 'plantao-hoje-farmaceutico',
+        severity: 'warning',
+        message: `Com ${farm.headcount} farmacêutico(a)(s) hoje, o plantão não tem farmacêutico em todas as noites (a lei exige farmacêutico também no plantão). O custo de hoje conta só as noites que o quadro atual consegue cobrir, então está subestimado.`,
+      });
+    }
+  }
+
   // Faixas que passam do último turno por poucos minutos.
   const week = buildWeekHours(store.hours as StoreHoursInput);
   const model = (role: ScaleStoreInput['roles'][number]) =>
