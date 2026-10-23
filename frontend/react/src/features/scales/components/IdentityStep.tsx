@@ -36,14 +36,14 @@ export function IdentityStep({ draft, errors, onChange }: Props) {
           id="uf"
           value={draft.state}
           onChange={(e) => onChange({ state: e.target.value })}
-          className="border-input bg-background w-full rounded-lg border p-3 text-sm"
+          className="border-input bg-surface w-full rounded-lg border p-3 text-sm"
         >
           {UFS.map((uf) => (
             <option key={uf}>{uf}</option>
           ))}
         </select>
         {errors['state'] ? (
-          <p role="alert" className="text-destructive text-xs">
+          <p role="alert" className="text-critical text-xs">
             {errors['state']}
           </p>
         ) : null}

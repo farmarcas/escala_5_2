@@ -1,5 +1,5 @@
 import { Link, Navigate, Outlet, useNavigate, useParams } from 'react-router-dom';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonStyles } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Tabs } from '@/components/ui/Tabs';
 import { FormMessage } from '@/features/auth/components/FormMessage';
@@ -42,7 +42,9 @@ export function StorePanelLayout() {
           </Link>
           {state.status === 'ready' ? (
             <>
-              <h1 className="mt-2 text-2xl font-bold">{state.store.name}</h1>
+              <h1 className="font-display mt-2 text-[32px] leading-10 font-extrabold tracking-tight">
+                {state.store.name}
+              </h1>
               <p className="text-muted-foreground text-sm">
                 {state.store.city}/{state.store.state}
               </p>
@@ -60,7 +62,7 @@ export function StorePanelLayout() {
               id="store-switch"
               value={id}
               onChange={(e) => navigate(`/painel/lojas/${e.target.value}/diagnostico`)}
-              className="border-input bg-background rounded-lg border p-2 text-sm"
+              className="border-input bg-surface rounded-lg border p-2 text-sm"
             >
               {list.state.status === 'ready'
                 ? list.state.stores.map((s) => (
@@ -73,7 +75,7 @@ export function StorePanelLayout() {
           </div>
           <Link
             to="/painel/lojas/nova"
-            className="bg-accent text-primary-strong hover:bg-rp-50 inline-flex items-center rounded-md px-3 py-2 text-xs font-bold"
+            className={buttonStyles({ variant: 'secondary', size: 'md' })}
           >
             Nova loja
           </Link>

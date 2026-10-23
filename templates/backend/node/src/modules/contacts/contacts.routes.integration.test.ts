@@ -154,7 +154,7 @@ describe('/api/v1/admin/contact-requests', () => {
     await prisma.$disconnect();
   });
 
-  it('deve exigir a chave da equipe (e não aceitar a sessão de quem usa a calculadora)', async () => {
+  it('deve exigir a chave da equipe (e não aceitar a sessão de quem usa o Radar Escala)', async () => {
     const t = makeApp();
     const { agent } = await signUpAndLogin(t, 'ana@rede.com.br');
 

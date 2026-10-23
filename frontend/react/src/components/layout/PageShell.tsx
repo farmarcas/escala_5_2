@@ -5,9 +5,9 @@ type PageShellProps = { headerActions?: ReactNode; children: ReactNode };
 
 export function PageShell({ headerActions, children }: PageShellProps) {
   return (
-    <div className="bg-muted min-h-screen">
+    <div className="bg-background min-h-screen">
       <Header actions={headerActions} />
-      <main className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6">{children}</main>
+      <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">{children}</main>
     </div>
   );
 }

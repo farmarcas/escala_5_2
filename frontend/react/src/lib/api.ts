@@ -12,7 +12,7 @@ export class ApiError extends Error {
 
 type ApiInit = { method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'; body?: unknown };
 
-const FALLBACK_MESSAGE = 'Algo deu errado. Tente de novo em instantes.';
+const FALLBACK_MESSAGE = 'Não conseguimos concluir agora. Tente de novo em instantes.';
 
 // Fala com a API pelo mesmo endereço da tela (o Vite repassa /api): o cookie de sessão vai junto.
 export async function apiFetch<T = void>(path: string, init: ApiInit = {}): Promise<T> {

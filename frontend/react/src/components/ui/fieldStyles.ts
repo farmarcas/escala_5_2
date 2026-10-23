@@ -1,12 +1,12 @@
 import { cn } from '@/lib/cn';
 
-// Desenho do campo do Alquimia: borda cinza, cantos arredondados, texto pequeno e borda azul no foco.
+// Campo do guia: borda de 1 px, raio de 8 px, foco com contorno laranja e halo Laranja 100.
 export const fieldControlClass = (hasError: boolean) =>
   cn(
-    'border-input bg-background text-foreground w-full rounded-lg border p-3 text-sm transition-all',
+    'border-input bg-surface text-foreground min-h-11 w-full rounded-md border px-3 py-2 text-sm transition-colors',
     'placeholder:text-muted-foreground',
-    'focus-visible:border-primary focus-visible:ring-ring focus-visible:ring-1 focus-visible:outline-none',
-    'disabled:border-mi-70 disabled:bg-muted disabled:text-mi-70',
-    'aria-invalid:border-destructive',
-    hasError && 'border-destructive',
+    'focus-visible:border-ring focus-visible:ring-halo focus-visible:ring-4 focus-visible:outline-none',
+    'disabled:bg-muted disabled:text-muted-foreground',
+    'aria-invalid:border-critical',
+    hasError && 'border-critical',
   );

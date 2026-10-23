@@ -37,7 +37,9 @@ export function NewStoreScreen() {
         <Link to="/painel" className="text-primary-strong text-sm underline underline-offset-2">
           ← Minhas lojas
         </Link>
-        <h1 className="mt-2 text-2xl font-bold">Nova loja</h1>
+        <h1 className="font-display mt-2 text-[32px] leading-10 font-extrabold tracking-tight">
+          Nova loja
+        </h1>
       </div>
       {error ? (
         <div className="flex flex-col items-start gap-3">

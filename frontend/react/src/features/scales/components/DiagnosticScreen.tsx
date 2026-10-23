@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { BarCompare } from '@/components/ui/BarCompare';
 import { Button } from '@/components/ui/Button';
-import { KpiCard } from '@/components/ui/KpiCard';
+import { ComparisonKpi } from '@/components/ui/KpiCard';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { FormMessage } from '@/features/auth/components/FormMessage';
-import { formatBRL, formatInt, formatPercent } from '@/lib/formatPtBr';
+import { formatBRL, formatDelta, formatInt, formatSignedBRL } from '@/lib/formatPtBr';
 import { StackedBar } from '@/components/ui/StackedBar';
 import { useDiagnostic } from '../hooks/useDiagnostic';
 import { AlertsBlock } from './AlertsBlock';
@@ -69,7 +69,7 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-bold">Diagnóstico e custos</h2>
+        <h2 className="font-display text-2xl font-semibold">Resultado da escala 5x2</h2>
         <SegmentedControl
           label="Cenário"
           value={scenario}
@@ -102,28 +102,38 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
         />
       </div>
 
-      <section className="border-primary bg-accent rounded-lg border p-5" aria-live="polite">
-        <p className="text-lg font-bold">
+      <section className="border-blue-turn bg-selected rounded-lg border p-5" aria-live="polite">
+        <p className="font-display text-selected-foreground text-xl leading-7 font-semibold">
           {hireTotal === 0
-            ? `Para cumprir a ${label}, esta loja não precisa contratar.`
-            : `Para cumprir a ${label}, esta loja precisa contratar ${formatInt(hireTotal)} ${hireTotal === 1 ? 'pessoa' : 'pessoas'}.`}
+            ? `Na ${label}, esta loja não precisa contratar.`
+            : `Na ${label}, esta loja precisa de ${formatInt(hireTotal)} ${hireTotal === 1 ? 'colaborador a mais' : 'colaboradores a mais'}.`}
         </p>
-        {hireTotal > 0 ? <p className="text-da-600 mt-1 text-sm">{hireText}.</p> : null}
+        {hireTotal > 0 ? (
+          <p className="text-secondary-foreground mt-1 text-sm">{hireText}.</p>
+        ) : null}
       </section>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <KpiCard label="Folha mensal hoje (6x1 · 44h)" value={formatBRL(d.payroll.today.total)} />
-        <KpiCard label={`Nova arquitetura (${label})`} value={formatBRL(pay.total)} />
-        <KpiCard
-          tone="highlight"
-          label="Diferença por mês"
-          value={`${pay.monthlyDifference >= 0 ? '+' : ''}${formatBRL(pay.monthlyDifference)}`}
-          detail={`${pay.percent >= 0 ? '+' : ''}${formatPercent(pay.percent / 100)} · ${formatBRL(pay.yearlyDifference)} por ano`}
+      <div className="grid gap-4 md:grid-cols-2">
+        <ComparisonKpi
+          label="Colaboradores necessários"
+          now={d.totals.today}
+          next={d.totals.today + hireTotal}
+          nextLabel={label}
+          delta={formatDelta(hireTotal, hireTotal === 1 ? 'colaborador' : 'colaboradores')}
+          detail="Quem já existe mais as contratações da nova escala."
+        />
+        <ComparisonKpi
+          label="Custo mensal de pessoal"
+          now={formatBRL(d.payroll.today.total)}
+          next={formatBRL(pay.total)}
+          nextLabel={label}
+          delta={`${formatSignedBRL(pay.monthlyDifference)}/mês`}
+          detail={`${formatDelta(pay.percent, '%', 1)} · ${formatSignedBRL(pay.yearlyDifference)} por ano`}
         />
       </div>
 
-      <section className="border-border bg-background rounded-lg border p-5">
-        <h3 className="font-bold">Quadro por função</h3>
+      <section className="border-border bg-surface rounded-lg border p-5">
+        <h3 className="font-display text-lg font-semibold">Quadro por função</h3>
         <p className="text-muted-foreground mb-3 text-sm">
           “Necessário” é o menor número de pessoas que cobre todo o horário com o mínimo no salão,
           folgas, intervalos e folga dominical.
@@ -214,13 +224,17 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
 
       <HolidaySummary summary={d.holidays[scenario]} store={store} />
 
-      <section className="border-border bg-background rounded-lg border p-5">
-        <h3 className="mb-3 font-bold">Custo direto e indireto</h3>
+      <section className="border-border bg-surface rounded-lg border p-5">
+        <h3 className="font-display mb-3 text-lg font-semibold">Custo direto e indireto</h3>
         <BarCompare
           format={formatBRL}
           bars={[
-            { label: 'Hoje (6x1 · 44h)', value: d.payroll.today.total, className: 'bg-mi-100' },
-            { label: `Nova escala (${label})`, value: pay.total, className: 'bg-primary' },
+            {
+              label: 'Hoje (6x1 · 44h)',
+              value: d.payroll.today.total,
+              className: 'bg-scenario-now',
+            },
+            { label: `Nova escala (${label})`, value: pay.total, className: 'bg-scenario-5x2' },
           ]}
         />
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
@@ -229,8 +243,8 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
             <StackedBar
               format={formatBRL}
               parts={[
-                { label: 'Direto', value: d.payroll.today.direct, className: 'bg-rp-500' },
-                { label: 'Indireto', value: d.payroll.today.indirect, className: 'bg-da-500' },
+                { label: 'Direto', value: d.payroll.today.direct, className: 'bg-scenario-5x2' },
+                { label: 'Indireto', value: d.payroll.today.indirect, className: 'bg-series-2' },
               ]}
             />
           </div>
@@ -239,8 +253,8 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
             <StackedBar
               format={formatBRL}
               parts={[
-                { label: 'Direto', value: pay.direct, className: 'bg-rp-500' },
-                { label: 'Indireto', value: pay.indirect, className: 'bg-da-500' },
+                { label: 'Direto', value: pay.direct, className: 'bg-scenario-5x2' },
+                { label: 'Indireto', value: pay.indirect, className: 'bg-series-2' },
               ]}
             />
           </div>
@@ -250,8 +264,8 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
         </p>
       </section>
 
-      <section className="border-border bg-background rounded-lg border p-5">
-        <h3 className="mb-3 font-bold">Componentes da folha</h3>
+      <section className="border-border bg-surface rounded-lg border p-5">
+        <h3 className="font-display mb-3 text-lg font-semibold">Componentes da folha</h3>
         <CostComponents
           today={d.payroll.today}
           next={pay}
@@ -260,8 +274,8 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
         />
       </section>
 
-      <section className="border-border bg-background rounded-lg border p-5">
-        <h3 className="font-bold">Custo por colaborador</h3>
+      <section className="border-border bg-surface rounded-lg border p-5">
+        <h3 className="font-display text-lg font-semibold">Custo por colaborador</h3>
         <p className="text-muted-foreground mb-3 text-sm">
           A partir do salário de registro informado, na nova escala. Adicionais variam com o turno;
           o valor é a média da função.

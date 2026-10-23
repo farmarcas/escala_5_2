@@ -7,8 +7,8 @@ export function FormMessage({ tone, children }: FormMessageProps) {
     <p
       role={tone === 'error' ? 'alert' : 'status'}
       className={cn(
-        'rounded-md p-3 text-sm',
-        tone === 'error' ? 'bg-destructive/10 text-destructive' : 'bg-accent text-primary-strong',
+        'rounded-md p-3 text-sm font-medium',
+        tone === 'error' ? 'bg-critical-bg text-critical' : 'bg-positive-bg text-positive',
       )}
     >
       {children}

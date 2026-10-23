@@ -1,4 +1,4 @@
-// Espelho dos contratos da API do Painel de Escalas (backend/node/src/modules/scales).
+// Espelho dos contratos da API do Radar Escala (backend/node/src/modules/scales).
 
 export type RoleName =
   | 'farmaceutico'
@@ -108,6 +108,9 @@ export type ScaleStoreSummary = {
   state: string;
   people: number;
   updatedAt: string;
+  // Horas de funcionamento por semana e situação de cada dia (segunda a domingo).
+  weeklyHours: number;
+  days: ('open' | 'reduced' | 'closed')[];
 };
 
 export type ScenarioKey = '5x2_42' | '5x2_40';

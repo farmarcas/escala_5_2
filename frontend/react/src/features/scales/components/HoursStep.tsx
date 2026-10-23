@@ -89,7 +89,7 @@ export function HoursStep({ draft, errors, onChange }: Props) {
                       aria-label={`${name}: horário`}
                       value={mode}
                       onChange={(e) => setMode(day, e.target.value as Mode)}
-                      className="border-input bg-background rounded-lg border p-2 text-sm"
+                      className="border-input bg-surface rounded-lg border p-2 text-sm"
                     >
                       <option value="padrao">Horário padrão</option>
                       <option value="especial">Horário diferente</option>
@@ -102,7 +102,7 @@ export function HoursStep({ draft, errors, onChange }: Props) {
                           aria-label={`${name}: abre às`}
                           value={special.start}
                           onChange={(e) => setSpecial(day, 'start', e.target.value)}
-                          className="border-input bg-background rounded-lg border p-2"
+                          className="border-input bg-surface rounded-lg border p-2"
                         />
                         até
                         <input
@@ -110,7 +110,7 @@ export function HoursStep({ draft, errors, onChange }: Props) {
                           aria-label={`${name}: fecha às`}
                           value={special.end}
                           onChange={(e) => setSpecial(day, 'end', e.target.value)}
-                          className="border-input bg-background rounded-lg border p-2"
+                          className="border-input bg-surface rounded-lg border p-2"
                         />
                       </span>
                     ) : null}

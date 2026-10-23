@@ -14,9 +14,9 @@ export function Tabs({ items, label }: { items: TabItem[]; label: string }) {
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  'focus-visible:ring-ring -mb-px inline-block border-b-2 px-4 py-3 text-sm font-medium whitespace-nowrap focus-visible:ring-2 focus-visible:outline-none',
+                  '-mb-px inline-block border-b-2 px-4 py-3 text-sm font-medium whitespace-nowrap',
                   isActive
-                    ? 'border-primary text-primary-strong'
+                    ? 'border-primary text-foreground font-semibold'
                     : 'text-muted-foreground hover:text-foreground border-transparent',
                 )
               }

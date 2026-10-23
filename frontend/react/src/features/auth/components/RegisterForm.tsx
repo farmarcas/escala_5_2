@@ -40,10 +40,10 @@ export function RegisterForm() {
     return (
       <AuthCard title="Confira seu e-mail">
         <FormMessage tone="success">
-          {`Enviamos um link de confirmação para ${values.email.trim()}. Clique nele para ativar a conta e depois entre.`}
+          {`Enviamos um link de confirmação para ${values.email.trim()}. Abra o link para ativar a conta e depois entre.`}
         </FormMessage>
         <Link to="/entrar" className="text-primary-strong text-sm font-medium underline">
-          Ir para a entrada
+          Entrar na conta
         </Link>
       </AuthCard>
     );
@@ -104,7 +104,7 @@ export function RegisterForm() {
             Ler a política de privacidade
           </Link>
           {errors.acceptPrivacy ? (
-            <p role="alert" className="text-destructive text-xs">
+            <p role="alert" className="text-critical text-xs">
               {errors.acceptPrivacy}
             </p>
           ) : null}

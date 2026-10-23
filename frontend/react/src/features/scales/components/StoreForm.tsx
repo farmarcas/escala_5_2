@@ -90,20 +90,20 @@ export function StoreForm({ initial, isNew, onSave }: Props) {
         event.preventDefault();
         void save.submit(draft);
       }}
-      className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)_14rem]"
+      className="grid grid-cols-1 gap-6 lg:grid-cols-[14rem_minmax(0,1fr)_14rem]"
     >
-      <div className="lg:col-start-1">
+      <div className="min-w-0 lg:col-start-1">
         <Stepper steps={steps} currentId={step} onSelect={(id) => setStep(id as StepId)} />
       </div>
 
-      <div className="flex flex-col gap-4 lg:col-start-2 lg:row-start-1">
+      <div className="flex min-w-0 flex-col gap-4 lg:col-start-2 lg:row-start-1">
         {isNew ? (
           <FormMessage tone="success">
             Loja de exemplo: substitua pelos dados da sua loja.
           </FormMessage>
         ) : null}
         <section
-          className="border-border bg-background rounded-lg border p-5"
+          className="border-border bg-surface rounded-lg border p-5"
           aria-labelledby="step-title"
         >
           <h2 id="step-title" className="mb-4 text-lg font-bold">
@@ -141,7 +141,7 @@ export function StoreForm({ initial, isNew, onSave }: Props) {
         </div>
       </div>
 
-      <div className="lg:col-start-3 lg:row-start-1">
+      <div className="min-w-0 lg:col-start-3 lg:row-start-1">
         <LivePreview preview={preview} />
       </div>
     </form>

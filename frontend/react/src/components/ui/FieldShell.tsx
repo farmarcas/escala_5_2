@@ -13,7 +13,7 @@ type FieldShellProps = {
 export function FieldShell({ id, label, hint, error, className, children }: FieldShellProps) {
   return (
     <div className={cn('flex flex-col gap-1', className)}>
-      <label htmlFor={id} className="text-sm font-medium">
+      <label htmlFor={id} className="text-[13px] leading-4 font-medium">
         {label}
       </label>
       {children}
@@ -23,7 +23,7 @@ export function FieldShell({ id, label, hint, error, className, children }: Fiel
         </p>
       ) : null}
       {error ? (
-        <p id={`${id}-error`} className="text-destructive text-xs" role="alert">
+        <p id={`${id}-error`} className="text-critical text-xs" role="alert">
           {error}
         </p>
       ) : null}

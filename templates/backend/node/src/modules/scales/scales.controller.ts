@@ -87,7 +87,7 @@ export const makeScalesController = (service: ScalesService, today: () => string
       .toLowerCase();
     res
       .type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-      .set('Content-Disposition', `attachment; filename="escalas-${slug || 'loja'}.xlsx"`)
+      .set('Content-Disposition', `attachment; filename="radar-escala-${slug || 'loja'}.xlsx"`)
       .send(buffer);
   },
 

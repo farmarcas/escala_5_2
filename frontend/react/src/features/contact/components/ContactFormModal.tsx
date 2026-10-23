@@ -60,10 +60,8 @@ function ContactFormBody({ snapshot, onClose }: FormBodyProps) {
   if (isDone) {
     return (
       <div className="flex flex-col gap-4">
-        <FormMessage tone="success">Solicitação registrada!</FormMessage>
-        <p className="text-sm">
-          Seus dados foram registrados. Nossa equipe entra em contato em breve.
-        </p>
+        <FormMessage tone="success">Pedido de contato registrado.</FormMessage>
+        <p className="text-sm">Um consultor Farmarcas entra em contato com você em breve.</p>
         <Button onClick={onClose}>Fechar</Button>
       </div>
     );
@@ -129,7 +127,7 @@ function ContactFormBody({ snapshot, onClose }: FormBodyProps) {
           Ler a política de privacidade
         </Link>
         {errors.acceptPrivacy ? (
-          <p role="alert" className="text-destructive text-xs">
+          <p role="alert" className="text-critical text-xs">
             {errors.acceptPrivacy}
           </p>
         ) : null}
@@ -139,7 +137,7 @@ function ContactFormBody({ snapshot, onClose }: FormBodyProps) {
 
       <div className="flex gap-3">
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Enviando…' : 'Enviar'}
+          {isSubmitting ? 'Pedindo contato…' : 'Pedir contato'}
         </Button>
         <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
           Cancelar

@@ -1,6 +1,8 @@
 import { ConflictError } from '../../shared/errors/conflict-error.js';
 import { NotFoundError } from '../../shared/errors/not-found-error.js';
 import { diagnose, type DiagnosticOverrides } from './scales.diagnostic.js';
+import { buildWeekHours, type StoreHoursInput } from './engine/coverage.js';
+import { windowLength } from './engine/time.js';
 import { buildReport } from './scales.report.js';
 import { buildAlerts } from './scales.alerts.js';
 import { buildRosterView } from './scales.roster.js';
@@ -21,6 +23,20 @@ export type ScalesRepository = {
   update: (groupId: string, id: string, input: ScaleStoreInput) => Promise<ScaleStoreRecord>;
   softDelete: (groupId: string, id: string) => Promise<void>;
 };
+
+// Dias de funcionamento da semana (segunda a domingo) e horas abertas por semana, para o card da loja.
+// "reduced" marca o dia com horário menor que o maior dia da semana (por exemplo, o domingo).
+export function openingSummary(store: ScaleStoreInput) {
+  const week = buildWeekHours(store.hours as StoreHoursInput);
+  const lengths = week.map((w) => windowLength(w));
+  const longest = Math.max(...lengths);
+  return {
+    weeklyHours: Math.round((lengths.reduce((n, l) => n + l, 0) / 60) * 10) / 10,
+    days: lengths.map((l) => (l === 0 ? 'closed' : l < longest ? 'reduced' : 'open')) as (
+      'open' | 'reduced' | 'closed'
+    )[],
+  };
+}
 
 export const makeScalesService = (repo: ScalesRepository) => {
   const assertNameFree = async (groupId: string, name: string, exceptId?: string) => {
@@ -44,6 +60,7 @@ export const makeScalesService = (repo: ScalesRepository) => {
         city: s.city,
         state: s.state,
         people: s.roles.filter((r) => r.enabled).reduce((n, r) => n + r.headcount, 0),
+        ...openingSummary(s),
         updatedAt: s.updatedAt,
       }));
     },

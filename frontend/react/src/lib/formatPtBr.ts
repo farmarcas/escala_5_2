@@ -65,3 +65,44 @@ export const formatDateTime = (iso: string): string => {
         timeZone: 'America/Sao_Paulo',
       });
 };
+
+// Sinal de menos verdadeiro (U+2212): o hífen de teclado não serve em número com sinal.
+const MINUS = '\u2212';
+const signOf = (value: number) => (value > 0 ? '+' : value < 0 ? MINUS : '');
+
+// Variação sempre com sinal e unidade: "+2 colaboradores", "−52 h". Zero sai sem sinal.
+export const formatDelta = (value: number, unit = '', digits = 0): string => {
+  if (!Number.isFinite(value)) return NOT_A_NUMBER;
+  const abs = Math.abs(value).toLocaleString('pt-BR', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+  // Porcentagem cola no número (22,2%); as demais unidades levam espaço (52 h, 2 colaboradores).
+  const glue = unit === '%' ? '' : ' ';
+  return `${signOf(value)}${abs}${unit ? `${glue}${unit}` : ''}`;
+};
+
+// Variação em reais: "+R$ 8.400", "−R$ 4.200".
+export const formatSignedBRL = (value: number): string =>
+  Number.isFinite(value) ? `${signOf(value)}${formatBRL(Math.abs(value))}` : NOT_A_NUMBER;
+
+// Moeda com centavos, para tabelas: "R$ 46.200,00".
+export const formatBRLDetailed = (value: number): string =>
+  Number.isFinite(value)
+    ? value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }).replace('-', MINUS)
+    : NOT_A_NUMBER;
+
+// Horas por semana ou por mês: "102 h".
+export const formatHours = (hours: number): string =>
+  Number.isFinite(hours)
+    ? `${hours.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} h`
+    : NOT_A_NUMBER;
+
+// Faixa de horário em texto corrido: "07:00 às 22:00".
+export const formatRange = (start: string, end: string): string => `${start} às ${end}`;
+
+// Diferença em pontos percentuais: "+9 p.p.".
+export const formatPP = (points: number): string =>
+  Number.isFinite(points)
+    ? `${formatDelta(points, 'p.p.', Number.isInteger(points) ? 0 : 1)}`
+    : NOT_A_NUMBER;

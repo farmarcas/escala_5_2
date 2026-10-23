@@ -1,15 +1,15 @@
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
+// Status em pílula, nos quatro tons semânticos do guia. A cor nunca vai sozinha: o texto diz o estado.
 const tones = {
   neutral: 'bg-muted text-muted-foreground',
-  ok: 'bg-su-50 text-su-700',
+  ok: 'bg-positive-bg text-positive',
   warning: 'bg-warning-background text-warning',
-  danger: 'bg-wa-50 text-wa-500',
-  info: 'bg-accent text-primary-strong',
+  danger: 'bg-critical-bg text-critical',
+  info: 'bg-info-bg text-info',
 } as const;
 
-// A cor nunca vai sozinha: o texto diz o estado (acessível para quem não distingue cores).
 export function StatusPill({
   tone = 'neutral',
   children,
@@ -20,7 +20,7 @@ export function StatusPill({
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold whitespace-nowrap',
+        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap',
         tones[tone],
       )}
     >

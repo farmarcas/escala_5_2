@@ -17,7 +17,7 @@ export function Stepper({ steps, currentId, onSelect }: StepperProps) {
         {doneCount} de {steps.length} passos preenchidos
       </p>
       <div
-        className="bg-li-30 mb-3 h-1 overflow-hidden rounded-full"
+        className="bg-border mb-3 h-1 overflow-hidden rounded-full"
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={steps.length}
@@ -39,15 +39,17 @@ export function Stepper({ steps, currentId, onSelect }: StepperProps) {
                 onClick={() => onSelect(step.id)}
                 aria-current={current ? 'step' : undefined}
                 className={cn(
-                  'focus-visible:ring-ring flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm focus-visible:ring-2 focus-visible:outline-none',
-                  current ? 'bg-accent text-primary-strong font-bold' : 'hover:bg-muted',
+                  'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm',
+                  current ? 'bg-selected text-selected-foreground font-semibold' : 'hover:bg-muted',
                 )}
               >
                 <span
                   aria-hidden="true"
                   className={cn(
                     'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold',
-                    step.done ? 'bg-primary text-primary-foreground' : 'bg-li-30 text-da-600',
+                    step.done
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-border text-secondary-foreground',
                   )}
                 >
                   {step.done ? '✓' : index + 1}

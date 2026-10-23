@@ -41,6 +41,17 @@ describe('scales routes', () => {
       'Centro (cópia)',
     ]);
     expect(list.body.data[0].people).toBe(14);
+    // Segunda a sábado 07–22 (15 h) e domingo 08–14 (6 h): 96 h por semana, domingo reduzido.
+    expect(list.body.data[0].weeklyHours).toBe(96);
+    expect(list.body.data[0].days).toEqual([
+      'open',
+      'open',
+      'open',
+      'open',
+      'open',
+      'open',
+      'reduced',
+    ]);
 
     const edited = await agent
       .put(`/api/v1/scales/stores/${id}`)
@@ -86,7 +97,7 @@ describe('scales routes', () => {
         res.on('end', () => cb(null, Buffer.concat(chunks)));
       });
     expect(xlsx.status).toBe(200);
-    expect(xlsx.headers['content-disposition']).toContain('escalas-');
+    expect(xlsx.headers['content-disposition']).toContain('radar-escala-');
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(xlsx.body as never);
     expect(wb.worksheets.map((s) => s.name)).toEqual([

@@ -28,7 +28,7 @@ export function RulesTab() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h2 className="text-lg font-bold">Regras aplicadas pelo painel</h2>
+        <h2 className="font-display text-2xl font-semibold">Regras aplicadas pelo painel</h2>
         <p className="text-muted-foreground text-sm">
           Base legal usada para montar as escalas e calcular custos, conforme a legislação vigente
           em {formatDate(data.asOf)}, data da promulgação da EC 141/2026. Se uma nova lei,
@@ -40,9 +40,9 @@ export function RulesTab() {
         {data.rules.map((r) => (
           <li
             key={r.id}
-            className="border-border bg-background flex flex-col gap-2 rounded-lg border p-4"
+            className="border-border bg-surface flex flex-col gap-2 rounded-lg border p-4"
           >
-            <h3 className="font-bold">{r.title}</h3>
+            <h3 className="font-display text-lg font-semibold">{r.title}</h3>
             <p className="text-sm">{r.text}</p>
             <p className="text-muted-foreground mt-auto text-xs">
               {r.source} · em vigor desde {formatDate(r.effectiveFrom)}

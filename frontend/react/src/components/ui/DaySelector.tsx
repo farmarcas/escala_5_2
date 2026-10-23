@@ -27,10 +27,10 @@ export function DaySelector({ label, mask, onMaskChange }: DaySelectorProps) {
             aria-label={NAMES[index]}
             onClick={() => onMaskChange(mask ^ (1 << index))}
             className={cn(
-              'focus-visible:ring-ring h-9 min-w-10 rounded-md border px-2 text-xs font-bold focus-visible:ring-2 focus-visible:outline-none',
+              'h-9 min-w-10 rounded-md border px-2 text-xs font-semibold',
               on
-                ? 'border-primary bg-primary text-primary-foreground'
-                : 'border-input bg-background text-da-600 hover:bg-muted',
+                ? 'border-blue-turn bg-blue-turn text-white'
+                : 'border-input bg-surface text-secondary-foreground hover:bg-muted',
             )}
           >
             {day}

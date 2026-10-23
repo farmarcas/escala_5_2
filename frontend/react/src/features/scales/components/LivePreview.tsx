@@ -7,7 +7,7 @@ export function LivePreview({ preview }: { preview: PreviewState }) {
   return (
     <aside
       aria-label="Resumo ao vivo"
-      className="border-border bg-background rounded-lg border p-4 lg:sticky lg:top-4"
+      className="border-border bg-surface rounded-lg border p-4 lg:sticky lg:top-4"
     >
       <h2 className="text-sm font-bold">Resumo ao vivo</h2>
       {preview.status === 'loading' ? (
@@ -22,7 +22,7 @@ export function LivePreview({ preview }: { preview: PreviewState }) {
         </p>
       ) : null}
       {preview.status === 'error' ? (
-        <p role="alert" className="text-destructive mt-2 text-sm">
+        <p role="alert" className="text-critical mt-2 text-sm">
           {preview.message}
         </p>
       ) : null}

@@ -23,7 +23,7 @@ export function Modal({ isOpen, title, onClose, children }: ModalProps) {
       ref={ref}
       onClose={onClose}
       aria-labelledby="modal-title"
-      className="bg-background text-foreground m-auto w-[min(32rem,calc(100vw-2rem))] rounded-lg p-6 shadow-xl backdrop:bg-black/40"
+      className="bg-surface text-foreground border-border m-auto w-[min(32rem,calc(100vw-2rem))] rounded-lg border p-6 shadow-xl backdrop:bg-black/50"
     >
       <h2 id="modal-title" className="mb-4 text-lg font-semibold">
         {title}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonStyles } from '@/components/ui/Button';
 import { StatusPill } from '@/components/ui/StatusPill';
 import { ContactFormModal, type ContactSnapshot } from '@/features/contact';
 import type { Alert } from '../types';
@@ -15,18 +15,18 @@ type Props = { alerts: Alert[]; storeId: string; snapshot: ContactSnapshot };
 export function AlertsBlock({ alerts, storeId, snapshot }: Props) {
   const [contactOpen, setContactOpen] = useState(false);
   return (
-    <section className="border-border bg-background rounded-lg border p-5">
+    <section className="border-border bg-surface rounded-lg border p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="font-bold">Alertas e ajustes</h3>
+        <h3 className="font-display text-lg font-semibold">Alertas e ajustes</h3>
         <div className="flex flex-wrap gap-2">
           <a
             href={`/api/v1/scales/stores/${storeId}/report.xlsx`}
             download
-            className="bg-primary text-primary-foreground hover:bg-primary-hover inline-flex items-center rounded-md px-3 py-2 text-xs font-bold"
+            className={buttonStyles({ size: 'md' })}
           >
             Baixar relatório completo (Excel)
           </a>
-          <Button size="sm" variant="secondary" onClick={() => setContactOpen(true)}>
+          <Button size="md" variant="secondary" onClick={() => setContactOpen(true)}>
             Falar com um consultor
           </Button>
         </div>

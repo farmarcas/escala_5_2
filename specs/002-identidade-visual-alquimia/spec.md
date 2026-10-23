@@ -1,6 +1,6 @@
 # Feature Specification: Identidade visual do Alquimia na calculadora
 
-**Feature Branch**: `feat/identidade-visual-alquimia` | **Created**: 2026-10-22 | **Status**: Implementada; aprovada pela pessoa ("consegue colocar o layout?")
+**Feature Branch**: `feat/identidade-visual-alquimia` | **Created**: 2026-10-22 | **Status**: SUBSTITUÍDA pela [spec 005 (Radar Escala)](../005-identidade-radar-escala/spec.md)
 
 ## O que muda para a pessoa
 A calculadora passa a ter a identidade visual do design system da Farmarcas (Alquimia): mesmas cores, mesma fonte (Inter) e o mesmo desenho de botões, campos e selos. Nenhuma regra de negócio muda.

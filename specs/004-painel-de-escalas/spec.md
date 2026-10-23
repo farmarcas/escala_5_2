@@ -1,3 +1,5 @@
+> **Nome do produto**: a partir de 23/10/2026 o painel se chama **Radar Escala** (ver [spec 005](../005-identidade-radar-escala/spec.md)).
+
 # Feature Specification: Painel de Escalas 5x2 (Farmarcas)
 
 **Created**: 2026-10-22 | **Status**: Rascunho (aguardando aprovação) | **Referência funcional**: "Painel de Escalas" da Rede Inova (4 PDFs com as abas Dados da loja, Escala, Diagnóstico e custos e Regras aplicadas)

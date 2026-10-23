@@ -11,7 +11,7 @@ export function StackedBar({ parts, format }: { parts: BarPart[]; format: (n: nu
       <div
         role="img"
         aria-label={description}
-        className="bg-li-30 flex h-3 overflow-hidden rounded-full"
+        className="bg-border flex h-3 overflow-hidden rounded-full"
       >
         {parts.map((p) => (
           <div

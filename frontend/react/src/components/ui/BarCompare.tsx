@@ -19,7 +19,7 @@ export function BarCompare({
             <span>{bar.label}</span>
             <strong className="tabular-nums">{format(bar.value)}</strong>
           </div>
-          <div className="bg-li-30 h-3 overflow-hidden rounded-full" aria-hidden="true">
+          <div className="bg-border h-3 overflow-hidden rounded-full" aria-hidden="true">
             <div
               className={cn('h-full rounded-full', bar.className)}
               style={{ width: `${(bar.value / max) * 100}%` }}

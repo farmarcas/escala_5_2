@@ -11,8 +11,8 @@ export function SalesSection({ today, next, nextLabel, store }: Props) {
   const target = store.sales.payrollTargetRate;
   const reaches = next.payrollShare <= target;
   return (
-    <section className="border-border bg-background rounded-lg border p-5">
-      <h3 className="font-bold">Vendas, CMV e folha</h3>
+    <section className="border-border bg-surface rounded-lg border p-5">
+      <h3 className="font-display text-lg font-semibold">Vendas, CMV e folha</h3>
       <p className="text-muted-foreground mb-4 text-sm">
         Vendas informadas de {formatBRL(next.monthlySales)} por mês, CMV de{' '}
         {formatPercent(store.sales.cmvRate, 0)} e meta de folha de {formatPercent(target, 1)} das

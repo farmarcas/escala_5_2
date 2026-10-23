@@ -1,17 +1,15 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { Logo } from '@/components/brand/Logo';
 
 type HeaderProps = { actions?: ReactNode };
 
 export function Header({ actions }: HeaderProps) {
   return (
-    <header className="bg-foreground text-background">
-      <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-2 px-4 py-4 sm:px-6">
-        <Link to="/" className="text-lg font-bold">
-          Farmarcas
-          <span className="ml-2 hidden text-sm font-normal opacity-90 sm:inline">
-            Painel de Escalas 5x2
-          </span>
+    <header className="border-border bg-surface border-b">
+      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <Link to="/" aria-label="Radar Escala, página inicial" className="rounded-md">
+          <Logo size={28} />
         </Link>
         {actions}
       </div>

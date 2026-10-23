@@ -40,7 +40,7 @@ export const REFERENCE_SIMPLES = {
 
 export const REFERENCE_TOTALS_SIMPLES = { today: 56241, next42: 115628, hire42: 15 };
 
-// Totais da referência no Lucro Presumido/Real (PDF "Painel de Escalas Rede Inova"): folha de hoje e da 5x2 · 42h.
+// Totais da referência no Lucro Presumido/Real (PDF "Painel de Escalas" da referência): folha de hoje e da 5x2 · 42h.
 export const REFERENCE_TOTALS_PRESUMIDO = { today: 68701, next42: 141455 };
 
 // Mesma loja sem plantão (feriados ligados), lida do painel de referência: [necessário 6x1, 5x2 · 42h, folha hoje, folha 5x2 · 42h].

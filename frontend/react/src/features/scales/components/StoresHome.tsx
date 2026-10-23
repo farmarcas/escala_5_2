@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonStyles } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Modal } from '@/components/ui/Modal';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -8,9 +8,9 @@ import { FormMessage } from '@/features/auth/components/FormMessage';
 import { useSubmit } from '@/hooks/useSubmit';
 import { useScaleStores } from '../hooks/useScaleStores';
 import type { ScaleStoreSummary } from '../types';
+import { StoreCard } from './StoreCard';
 
-const newStoreLink =
-  'bg-primary text-primary-foreground hover:bg-primary-hover inline-flex items-center justify-center rounded-md px-4 py-3 text-sm font-bold';
+const newStoreLink = buttonStyles({});
 
 export function StoresHome() {
   const navigate = useNavigate();
@@ -29,9 +29,11 @@ export function StoresHome() {
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Painel de Escalas 5x2</h1>
+          <h1 className="font-display text-[32px] leading-10 font-extrabold tracking-tight">
+            Suas lojas
+          </h1>
           <p className="text-muted-foreground text-sm">
-            Veja quantas pessoas cada loja precisa e quanto custa a nova escala.
+            Veja quantos colaboradores cada loja precisa na escala 5x2 e quanto isso custa por mês.
           </p>
         </div>
         <Link to="/painel/lojas/nova" className={newStoreLink}>
@@ -57,50 +59,26 @@ export function StoresHome() {
 
       {state.status === 'ready' && state.stores.length === 0 ? (
         <EmptyState
-          title="Você ainda não cadastrou nenhuma loja"
-          description="Cadastre a primeira loja com horário e equipe. Começamos com uma loja de exemplo para você só ajustar."
+          title="Cadastre sua primeira loja"
+          description="Com o horário e o quadro atual, já dá para ver o resultado na 5x2. Começamos com uma loja de exemplo para você só ajustar."
           action={
             <Link to="/painel/lojas/nova" className={newStoreLink}>
-              Cadastrar a primeira loja
+              Cadastrar loja
             </Link>
           }
         />
       ) : null}
 
       {state.status === 'ready' && state.stores.length > 0 ? (
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {state.stores.map((store) => (
-            <li
+            <StoreCard
               key={store.id}
-              className="border-border bg-background flex flex-col gap-3 rounded-lg border p-4"
-            >
-              <div>
-                <h2 className="font-bold">{store.name}</h2>
-                <p className="text-muted-foreground text-sm">
-                  {store.city}/{store.state} · {store.people}{' '}
-                  {store.people === 1 ? 'pessoa' : 'pessoas'} hoje
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Link
-                  to={`/painel/lojas/${store.id}/diagnostico`}
-                  className="bg-primary text-primary-foreground hover:bg-primary-hover inline-flex items-center rounded-md px-3 py-2 text-xs font-bold"
-                >
-                  Abrir
-                </Link>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => void copy.submit(store)}
-                  disabled={copy.isSubmitting}
-                >
-                  Duplicar
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setToDelete(store)}>
-                  Excluir
-                </Button>
-              </div>
-            </li>
+              store={store}
+              busy={copy.isSubmitting}
+              onDuplicate={() => void copy.submit(store)}
+              onDelete={() => setToDelete(store)}
+            />
           ))}
         </ul>
       ) : null}

@@ -1,6 +1,11 @@
+import { LayoutGrid, UserRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonStyles } from '@/components/ui/Button';
+import { Icon } from '@/components/ui/Icon';
 import { useAuth } from '../hooks/useAuth';
+
+const navLink =
+  'text-secondary-foreground hover:text-foreground inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium';
 
 export function AccountMenu() {
   const { state, logout } = useAuth();
@@ -9,11 +14,11 @@ export function AccountMenu() {
 
   if (state.status === 'anonymous') {
     return (
-      <div className="flex items-center gap-4 text-sm">
-        <Link to="/entrar" className="font-medium underline underline-offset-2">
+      <div className="flex items-center gap-2 text-sm">
+        <Link to="/entrar" className={buttonStyles({ variant: 'ghost', size: 'md' })}>
           Entrar
         </Link>
-        <Link to="/cadastrar" className="font-medium underline underline-offset-2">
+        <Link to="/cadastrar" className={buttonStyles({ variant: 'outline', size: 'md' })}>
           Criar conta
         </Link>
       </div>
@@ -21,17 +26,21 @@ export function AccountMenu() {
   }
 
   return (
-    <div className="flex items-center gap-3 text-sm">
-      <span className="hidden opacity-90 sm:inline">{state.group.name}</span>
-      <Link to="/painel" className="font-medium underline underline-offset-2">
+    <nav aria-label="Conta" className="flex items-center gap-1 sm:gap-2">
+      <span className="text-muted-foreground mr-2 hidden text-xs sm:inline">
+        {state.group.name}
+      </span>
+      <Link to="/painel" className={navLink}>
+        <Icon icon={LayoutGrid} size={16} />
         Painel
       </Link>
-      <Link to="/conta" className="font-medium underline underline-offset-2">
+      <Link to="/conta" className={navLink}>
+        <Icon icon={UserRound} size={16} />
         Conta
       </Link>
-      <Button variant="secondary" size="sm" onClick={() => void logout()}>
+      <Button variant="outline" size="md" onClick={() => void logout()}>
         Sair
       </Button>
-    </div>
+    </nav>
   );
 }

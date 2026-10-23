@@ -52,7 +52,7 @@ export function ForgotPasswordForm() {
           />
           {error ? <FormMessage tone="error">{error}</FormMessage> : null}
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Enviando…' : 'Enviar link'}
+            {isSubmitting ? 'Enviando…' : 'Receber link por e-mail'}
           </Button>
         </form>
       )}

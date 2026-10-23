@@ -22,11 +22,11 @@ export function RoleCard({ role, error, onChange }: Props) {
       aria-label={label}
       className={cn(
         'rounded-lg border p-4',
-        role.enabled ? 'border-border bg-background' : 'border-border bg-muted',
+        role.enabled ? 'border-border bg-surface' : 'border-border bg-muted',
       )}
     >
       <header className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="font-bold">{label}</h3>
+        <h3 className="font-display text-lg font-semibold">{label}</h3>
         {optional ? (
           <Checkbox
             label="Usar esta função"
@@ -39,7 +39,7 @@ export function RoleCard({ role, error, onChange }: Props) {
         ) : null}
       </header>
       {error ? (
-        <p role="alert" className="text-destructive mt-2 text-xs">
+        <p role="alert" className="text-critical mt-2 text-xs">
           {error}
         </p>
       ) : null}
@@ -104,7 +104,7 @@ export function RoleCard({ role, error, onChange }: Props) {
                           role.coverage.mode === 'band' &&
                           onChange({ coverage: { ...role.coverage, start: e.target.value } })
                         }
-                        className="border-input bg-background rounded-lg border p-2"
+                        className="border-input bg-surface rounded-lg border p-2"
                       />
                       até
                       <input
@@ -115,7 +115,7 @@ export function RoleCard({ role, error, onChange }: Props) {
                           role.coverage.mode === 'band' &&
                           onChange({ coverage: { ...role.coverage, end: e.target.value } })
                         }
-                        className="border-input bg-background rounded-lg border p-2"
+                        className="border-input bg-surface rounded-lg border p-2"
                       />
                     </span>
                   ) : null}

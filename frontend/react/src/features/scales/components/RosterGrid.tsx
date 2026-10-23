@@ -43,9 +43,9 @@ function PersonName({ person }: { person: RosterPerson }) {
 export function RosterGrid({ group, week, dates, holidays, day }: Props) {
   const slots = (i: number) => week * 7 + i;
   return (
-    <section aria-label={group.label} className="border-border bg-background rounded-lg border">
+    <section aria-label={group.label} className="border-border bg-surface rounded-lg border">
       <header className="border-border flex flex-wrap items-center justify-between gap-2 border-b p-4">
-        <h3 className="font-bold">{group.label}</h3>
+        <h3 className="font-display text-lg font-semibold">{group.label}</h3>
         {group.covered ? (
           <StatusPill tone="ok">Coberto</StatusPill>
         ) : (
@@ -58,7 +58,7 @@ export function RosterGrid({ group, week, dates, holidays, day }: Props) {
         <table className="w-full min-w-[46rem] border-separate border-spacing-0 text-left text-sm">
           <thead>
             <tr className="text-muted-foreground text-xs">
-              <th className="bg-background sticky left-0 z-10 px-4 py-2 font-medium">Pessoa</th>
+              <th className="bg-surface sticky left-0 z-10 px-4 py-2 font-medium">Pessoa</th>
               {WEEKDAYS.map((d, i) => (
                 <th key={d} className="px-2 py-2 text-center font-medium">
                   {d}
@@ -78,7 +78,7 @@ export function RosterGrid({ group, week, dates, holidays, day }: Props) {
               <tr key={p.id}>
                 <th
                   scope="row"
-                  className="bg-background border-border sticky left-0 z-10 border-t px-4 py-2 font-normal"
+                  className="bg-surface border-border sticky left-0 z-10 border-t px-4 py-2 font-normal"
                 >
                   <PersonName person={p} />
                 </th>

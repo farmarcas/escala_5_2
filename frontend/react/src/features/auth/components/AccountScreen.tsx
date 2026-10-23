@@ -48,7 +48,7 @@ function GroupForm({ group }: { group: GroupInfo }) {
 
   return (
     <form
-      className="bg-background border-border flex flex-col gap-4 rounded-lg border p-5"
+      className="bg-surface border-border flex flex-col gap-4 rounded-lg border p-5"
       onSubmit={handleSubmit}
       noValidate
     >
@@ -106,7 +106,7 @@ function DeleteAccount() {
   };
 
   return (
-    <section className="bg-background border-border flex flex-col gap-3 rounded-lg border p-5">
+    <section className="bg-surface border-border flex flex-col gap-3 rounded-lg border p-5">
       <h2 className="text-lg font-semibold">Excluir minha conta</h2>
       <p className="text-muted-foreground text-sm">
         Apaga a sua conta e todos os dados do grupo: lojas, equipes e dados do painel. Não dá para
@@ -156,7 +156,9 @@ function Loaded({ user, group }: LoadedProps) {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold">Minha conta</h1>
+        <h1 className="font-display text-[32px] leading-10 font-extrabold tracking-tight">
+          Minha conta
+        </h1>
         <p className="text-muted-foreground text-sm">
           {user.name} · {user.email}
         </p>

@@ -33,7 +33,7 @@ export const makeContactsController = (service: ContactsService) => ({
       res
         .status(200)
         .type('text/csv; charset=utf-8')
-        .set('Content-Disposition', 'attachment; filename="contatos-calculadora.csv"')
+        .set('Content-Disposition', 'attachment; filename="contatos-radar-escala.csv"')
         .send(buildContactsCsv(result.data));
       return;
     }

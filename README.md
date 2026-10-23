@@ -36,9 +36,9 @@ Para desligar sem perder os dados: `/parar-ambiente`.
 
 ---
 
-## 🧮 Painel de Escalas 5x2 (Farmarcas)
+## 🧮 Radar Escala (Farmarcas)
 
-Mostra, por loja, quantas pessoas cada função precisa na escala 5x2 (42h e 40h), a escala de 4 semanas por pessoa, a folha mensal hoje e na nova escala (custos completos, plantão, feriados, vendas e CMV), alertas e um relatório em Excel. Só funciona com login. Especificação em [specs/004-painel-de-escalas](specs/004-painel-de-escalas/spec.md); o resultado é estimativa de planejamento, e as regras legais precisam ser validadas pelo jurídico e pela contabilidade antes de uso real.
+Mostra, por loja, quantas pessoas cada função precisa na escala 5x2 (42h e 40h), a escala de 4 semanas por pessoa, a folha mensal hoje e na nova escala (custos completos, plantão, feriados, vendas e CMV), alertas e um relatório em Excel. Só funciona com login. Especificação em [specs/004-painel-de-escalas](specs/004-painel-de-escalas/spec.md); a identidade visual (nome, cores, fontes, tema claro e escuro) está em [specs/005-identidade-radar-escala](specs/005-identidade-radar-escala/spec.md); o resultado é estimativa de planejamento, e as regras legais precisam ser validadas pelo jurídico e pela contabilidade antes de uso real.
 
 | Quero... | Onde |
 |---|---|

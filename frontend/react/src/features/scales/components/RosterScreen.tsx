@@ -20,7 +20,7 @@ export function RosterScreen({ store }: { store: ScaleStore }) {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-bold">Escala de 4 semanas</h2>
+        <h2 className="font-display text-2xl font-semibold">Escala de 4 semanas</h2>
         <SegmentedControl
           label="Cenário"
           value={scenario}
@@ -51,7 +51,7 @@ export function RosterScreen({ store }: { store: ScaleStore }) {
                 id="roster-group"
                 value={groupKey}
                 onChange={(e) => setGroupKey(e.target.value)}
-                className="border-input bg-background rounded-lg border p-2 text-sm"
+                className="border-input bg-surface rounded-lg border p-2 text-sm"
               >
                 <option value="todas">Todas as funções</option>
                 {state.roster.groups.map((g) => (
@@ -70,10 +70,10 @@ export function RosterScreen({ store }: { store: ScaleStore }) {
                   aria-selected={week === w}
                   onClick={() => setWeek(w)}
                   className={cn(
-                    'focus-visible:ring-ring rounded-md border px-3 py-1.5 text-xs font-medium focus-visible:ring-2 focus-visible:outline-none',
+                    'rounded-md border px-3 py-1.5 text-xs font-medium',
                     week === w
-                      ? 'border-primary bg-accent text-primary-strong font-bold'
-                      : 'border-input bg-background hover:bg-muted',
+                      ? 'border-blue-turn bg-selected text-selected-foreground font-semibold'
+                      : 'border-input bg-surface hover:bg-muted',
                   )}
                 >
                   Semana {w + 1}

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   formatBRL,
+  formatBRLDetailed,
+  formatDelta,
+  formatHours,
+  formatPP,
+  formatRange,
+  formatSignedBRL,
   formatBRLCompact,
   formatDateTime,
   formatInt,
@@ -67,5 +73,33 @@ describe('formatDateTime', () => {
 
   it('deve devolver traço para data inválida', () => {
     expect(formatDateTime('não é data')).toBe('—');
+  });
+});
+
+describe('formatos do guia Radar Escala', () => {
+  it('variação com sinal, unidade e o menos verdadeiro (U+2212)', () => {
+    expect(formatDelta(2, 'colaboradores')).toBe('+2 colaboradores');
+    expect(formatDelta(-52, 'h')).toBe('\u221252 h');
+    expect(formatDelta(0, 'h')).toBe('0 h');
+    expect(formatDelta(22.2, '%', 1)).toBe('+22,2%');
+    expect(formatDelta(Number.NaN)).toBe('—');
+  });
+
+  it('variação em reais', () => {
+    expect(formatSignedBRL(8400).replace(/\s/g, ' ')).toBe('+R$ 8.400');
+    expect(formatSignedBRL(-4200).replace(/\s/g, ' ')).toBe('\u2212R$ 4.200');
+    expect(formatSignedBRL(0).replace(/\s/g, ' ')).toBe('R$ 0');
+  });
+
+  it('moeda com centavos nas tabelas', () => {
+    expect(formatBRLDetailed(46200).replace(/\s/g, ' ')).toBe('R$ 46.200,00');
+    expect(formatBRLDetailed(-4200).replace(/\s/g, ' ')).toBe('\u2212R$ 4.200,00');
+  });
+
+  it('horas, faixa de horário e pontos percentuais', () => {
+    expect(formatHours(102)).toBe('102 h');
+    expect(formatRange('07:00', '22:00')).toBe('07:00 às 22:00');
+    expect(formatPP(9)).toBe('+9 p.p.');
+    expect(formatPP(-1.5)).toBe('\u22121,5 p.p.');
   });
 });

@@ -11,7 +11,7 @@ const BRL = '"R$" #,##0.00';
 const HEADER_FILL: ExcelJS.Fill = {
   type: 'pattern',
   pattern: 'solid',
-  fgColor: { argb: 'FF172B4D' },
+  fgColor: { argb: 'FF050505' },
 };
 const HEADER_FONT: Partial<ExcelJS.Font> = { bold: true, color: { argb: 'FFFFFFFF' } };
 
@@ -275,7 +275,7 @@ function rosterSheet(wb: ExcelJS.Workbook, name: string, roster: RosterView) {
 
 export async function buildReport(store: ScaleStoreInput): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'Painel de Escalas 5x2';
+  wb.creator = 'Radar Escala';
   const d = diagnose(store);
   comparative(wb, store, d);
   actionPlan(wb, store, d);
