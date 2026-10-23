@@ -42,7 +42,11 @@ export function StoresHome() {
       </div>
 
       {state.status === 'loading' ? (
-        <div role="status" aria-label="Carregando suas lojas" className="grid gap-3 sm:grid-cols-2">
+        <div
+          role="status"
+          aria-label="Carregando suas lojas"
+          className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+        >
           <Skeleton className="h-28" />
           <Skeleton className="h-28" />
         </div>
@@ -70,7 +74,7 @@ export function StoresHome() {
       ) : null}
 
       {state.status === 'ready' && state.stores.length > 0 ? (
-        <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {state.stores.map((store) => (
             <StoreCard
               key={store.id}

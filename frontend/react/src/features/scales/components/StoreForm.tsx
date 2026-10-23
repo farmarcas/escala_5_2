@@ -90,7 +90,7 @@ export function StoreForm({ initial, isNew, onSave }: Props) {
         event.preventDefault();
         void save.submit(draft);
       }}
-      className="grid grid-cols-1 gap-6 lg:grid-cols-[14rem_minmax(0,1fr)_14rem]"
+      className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[14rem_minmax(0,1fr)_16rem] xl:grid-cols-[18rem_minmax(0,1fr)_22rem]"
     >
       <div className="min-w-0 lg:col-start-1">
         <Stepper steps={steps} currentId={step} onSelect={(id) => setStep(id as StepId)} />

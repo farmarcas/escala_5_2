@@ -36,7 +36,7 @@ export function RulesTab() {
           mudam.
         </p>
       </div>
-      <ul className="grid gap-3 md:grid-cols-2">
+      <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {data.rules.map((r) => (
           <li
             key={r.id}

@@ -39,7 +39,7 @@ export function AlertsBlock({ alerts, storeId, snapshot }: Props) {
       {alerts.length === 0 ? (
         <p className="mt-3 text-sm">Nenhum alerta para esta loja.</p>
       ) : (
-        <ul className="mt-3 flex flex-col gap-3">
+        <ul className="mt-3 grid gap-3 xl:grid-cols-2">
           {alerts.map((a) => (
             <li
               key={a.id}

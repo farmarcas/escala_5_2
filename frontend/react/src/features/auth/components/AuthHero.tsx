@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 // Entrada no formato do guia: painel escuro com a promessa do produto (só no computador) e o formulário ao lado.
 export function AuthHero({ children }: { children: ReactNode }) {
   return (
-    <div className="grid items-stretch gap-6 lg:grid-cols-2">
+    <div className="mx-auto grid w-full max-w-5xl items-stretch gap-6 lg:grid-cols-2">
       <aside
         aria-hidden="true"
         className="bg-n-900 hidden flex-col justify-end gap-5 rounded-lg p-10 text-white lg:flex"

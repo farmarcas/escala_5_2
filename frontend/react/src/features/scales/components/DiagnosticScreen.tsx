@@ -113,7 +113,7 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
         ) : null}
       </section>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid items-stretch gap-4 md:grid-cols-2">
         <ComparisonKpi
           label="Colaboradores necessários"
           now={d.totals.today}
@@ -208,73 +208,77 @@ export function DiagnosticScreen({ store }: { store: ScaleStore }) {
         </p>
       </section>
 
-      {d.sales ? (
-        <SalesSection
-          today={d.sales.today}
-          next={d.sales.scenarios[scenario]}
-          nextLabel={label}
-          store={store}
-        />
-      ) : (
-        <p className="text-muted-foreground text-sm">
-          Quer saber quanto a loja precisa vender para pagar a mercadoria e a nova folha? Ative a
-          análise de vendas no passo 6 dos dados da loja.
-        </p>
-      )}
+      <div className="grid items-start gap-6 2xl:grid-cols-2">
+        {d.sales ? (
+          <SalesSection
+            today={d.sales.today}
+            next={d.sales.scenarios[scenario]}
+            nextLabel={label}
+            store={store}
+          />
+        ) : (
+          <p className="text-muted-foreground text-sm">
+            Quer saber quanto a loja precisa vender para pagar a mercadoria e a nova folha? Ative a
+            análise de vendas no passo 6 dos dados da loja.
+          </p>
+        )}
 
-      <HolidaySummary summary={d.holidays[scenario]} store={store} />
+        <HolidaySummary summary={d.holidays[scenario]} store={store} />
+      </div>
 
-      <section className="border-border bg-surface rounded-lg border p-5">
-        <h3 className="font-display mb-3 text-lg font-semibold">Custo direto e indireto</h3>
-        <BarCompare
-          format={formatBRL}
-          bars={[
-            {
-              label: 'Hoje (6x1 · 44h)',
-              value: d.payroll.today.total,
-              className: 'bg-scenario-now',
-            },
-            { label: `Nova escala (${label})`, value: pay.total, className: 'bg-scenario-5x2' },
-          ]}
-        />
-        <div className="mt-5 grid gap-5 sm:grid-cols-2">
-          <div>
-            <p className="mb-2 text-sm font-medium">Hoje</p>
-            <StackedBar
-              format={formatBRL}
-              parts={[
-                { label: 'Direto', value: d.payroll.today.direct, className: 'bg-scenario-5x2' },
-                { label: 'Indireto', value: d.payroll.today.indirect, className: 'bg-series-2' },
-              ]}
-            />
+      <div className="grid items-start gap-6 xl:grid-cols-2">
+        <section className="border-border bg-surface min-w-0 rounded-lg border p-5">
+          <h3 className="font-display mb-3 text-lg font-semibold">Custo direto e indireto</h3>
+          <BarCompare
+            format={formatBRL}
+            bars={[
+              {
+                label: 'Hoje (6x1 · 44h)',
+                value: d.payroll.today.total,
+                className: 'bg-scenario-now',
+              },
+              { label: `Nova escala (${label})`, value: pay.total, className: 'bg-scenario-5x2' },
+            ]}
+          />
+          <div className="mt-5 grid gap-5 sm:grid-cols-2">
+            <div>
+              <p className="mb-2 text-sm font-medium">Hoje</p>
+              <StackedBar
+                format={formatBRL}
+                parts={[
+                  { label: 'Direto', value: d.payroll.today.direct, className: 'bg-scenario-5x2' },
+                  { label: 'Indireto', value: d.payroll.today.indirect, className: 'bg-series-2' },
+                ]}
+              />
+            </div>
+            <div>
+              <p className="mb-2 text-sm font-medium">Nova escala ({label})</p>
+              <StackedBar
+                format={formatBRL}
+                parts={[
+                  { label: 'Direto', value: pay.direct, className: 'bg-scenario-5x2' },
+                  { label: 'Indireto', value: pay.indirect, className: 'bg-series-2' },
+                ]}
+              />
+            </div>
           </div>
-          <div>
-            <p className="mb-2 text-sm font-medium">Nova escala ({label})</p>
-            <StackedBar
-              format={formatBRL}
-              parts={[
-                { label: 'Direto', value: pay.direct, className: 'bg-scenario-5x2' },
-                { label: 'Indireto', value: pay.indirect, className: 'bg-series-2' },
-              ]}
-            />
-          </div>
-        </div>
-        <p className="text-muted-foreground mt-3 text-xs">
-          Direto: salários e adicionais. Indireto: provisões, encargos e benefícios.
-        </p>
-      </section>
+          <p className="text-muted-foreground mt-3 text-xs">
+            Direto: salários e adicionais. Indireto: provisões, encargos e benefícios.
+          </p>
+        </section>
 
-      <section className="border-border bg-surface rounded-lg border p-5">
-        <h3 className="font-display mb-3 text-lg font-semibold">Componentes da folha</h3>
-        <CostComponents
-          today={d.payroll.today}
-          next={pay}
-          nextLabel={`Nova escala (${label})`}
-          regime={d.payroll.taxRegime}
-        />
-      </section>
+        <section className="border-border bg-surface min-w-0 rounded-lg border p-5">
+          <h3 className="font-display mb-3 text-lg font-semibold">Componentes da folha</h3>
+          <CostComponents
+            today={d.payroll.today}
+            next={pay}
+            nextLabel={`Nova escala (${label})`}
+            regime={d.payroll.taxRegime}
+          />
+        </section>
+      </div>
 
-      <section className="border-border bg-surface rounded-lg border p-5">
+      <section className="border-border bg-surface min-w-0 rounded-lg border p-5">
         <h3 className="font-display text-lg font-semibold">Custo por colaborador</h3>
         <p className="text-muted-foreground mb-3 text-sm">
           A partir do salário de registro informado, na nova escala. Adicionais variam com o turno;

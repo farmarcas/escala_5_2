@@ -9,7 +9,7 @@ const weekdayOf = (iso: string) => WEEKDAY[new Date(`${iso}T12:00:00Z`).getUTCDa
 export function HolidaySummary({ summary, store }: { summary: Summary; store: ScaleStore }) {
   const { holidays } = store;
   return (
-    <section className="border-border bg-surface rounded-lg border p-5">
+    <section className="border-border bg-surface min-w-0 rounded-lg border p-5">
       <h3 className="font-display text-lg font-semibold">Feriados no período</h3>
       <p className="text-muted-foreground mb-3 text-sm">
         {holidays.rotation === 'rotativa'

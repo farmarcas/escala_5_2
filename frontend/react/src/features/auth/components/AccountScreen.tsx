@@ -163,8 +163,10 @@ function Loaded({ user, group }: LoadedProps) {
           {user.name} · {user.email}
         </p>
       </div>
-      <GroupForm group={group} />
-      <DeleteAccount />
+      <div className="grid items-start gap-6 xl:grid-cols-2">
+        <GroupForm group={group} />
+        <DeleteAccount />
+      </div>
     </div>
   );
 }
